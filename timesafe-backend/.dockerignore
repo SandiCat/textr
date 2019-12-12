@@ -1,0 +1,8 @@
+.stack-work
+*.cabal
+*~
+*.swp
+tarballs/
+.stack-work-profile/
+
+.git
