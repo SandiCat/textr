@@ -27,13 +27,12 @@ dependencies:
 - bytestring
 - text
 - vector
-- servant
-- servant-server
-- servant-elm
-- beam-core
-- beam-postgres
 - lens
-- mtl
+- beam-postgres
+- beam-core
+- servant-server
+- servant
+- servant-elm
 - warp
 
 ghc-options:
