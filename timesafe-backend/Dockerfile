@@ -1,41 +1,28 @@
-# Lifted from https://medium.com/permutive/optimized-docker-builds-for-haskell-76a9808eb10b
-# Loosely based on https://www.fpcomplete.com/blog/2017/12/building-haskell-apps-with-docker
-FROM fpco/stack-build:lts-14.17 as dependencies
-RUN mkdir /opt/build
-WORKDIR /opt/build
-
-# # GHC dynamically links its compilation targets to lib gmp
-# RUN apt-get update && apt-get download libgmp10
-# RUN mv libgmp*.deb libgmp.deb
-
-# Docker build should not use cached layer if any of these is modified
-COPY stack.yaml package.yaml stack.yaml.lock /opt/build/
-RUN stack build --system-ghc --dependencies-only
-
-# -------------------------------------------------------------------------------------------
 FROM fpco/stack-build:lts-14.17 as build
 
-# Copy compiled dependencies from previous stage
-COPY --from=dependencies /root/.stack /root/.stack
-COPY . /opt/build/
+VOLUME /opt/build/stack-artefacts
+# ^ this should be created automatically
 
-WORKDIR /opt/build
+RUN mkdir -p /opt/build/src
+COPY . /opt/build/src/
 
-RUN stack build --system-ghc
+WORKDIR /opt/build/src
+
+#RUN --mount=type=bind,src=~/.stack,destination=/opt/build/stack-root/ stack build --system-ghc --stack-root /opt/build/stack-root --work-dir /opt/build/stack-work
+#RUN --mount=target=~/.stack,type=cache stack build --system-ghc --stack-root /opt/build/stack-root --work-dir /opt/build/stack-work
+RUN stack build --system-ghc \
+    --stack-root /opt/build/stack-artefacts/stack-root \
+    --work-dir /opt/build/stack-artefacts/stack-work
 
 RUN mv "$(stack path --local-install-root --system-ghc)/bin" /opt/build/bin
 
 # -------------------------------------------------------------------------------------------
-# Base image for stack build so compiled artifact from previous
-# stage should run
+
 FROM fpco/stack-build-small:lts-14.17 as app
 RUN mkdir -p /opt/app
 WORKDIR /opt/app
 
-# # Install lib gmp
-# COPY --from=dependencies /opt/build/libgmp.deb /tmp
-# RUN dpkg -i /tmp/libgmp.deb && rm /tmp/libgmp.deb
-
 COPY --from=build /opt/build/bin .
+
 EXPOSE 80
 CMD ["/opt/app/server"]
