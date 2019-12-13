@@ -8,12 +8,12 @@ services:
     ports:
       - 8531:3000
     volumes:
-      # - stack-root:/root/.stack
-      - ~/.stack:/root/.stack # doesn't work with :ro
+      - stack-root:/root/.stack
+      # - ~/.stack:/root/.stack # doesn't work with :ro
       - stack-work:/data/src/.stack-work-docker
       - ../timesafe-backend:/data/src:ro
       - ./_build/bin:/data/bin
 
 volumes:
   stack-work:
-  # stack-root:
+  stack-root:
