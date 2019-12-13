@@ -4,5 +4,5 @@ WORKDIR /opt/app
 
 COPY ./_build/bin /opt/app
 
-EXPOSE 80
+EXPOSE 3000
 CMD ["/opt/app/server"]
