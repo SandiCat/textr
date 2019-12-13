@@ -1,0 +1,10 @@
+docker container create --name timesafe-cont \
+    -v timesafe-volume:/opt/build/src \
+    -v ~/.stack:/opt/build/stack-root \
+    fpco/stack-build:lts-14.17
+
+docker run -dit \
+    --name timesafe-cont \
+    -v timesafe-volume:/opt/build/src \
+    -v ~/.stack:/opt/build/stack-root \
+    fpco/stack-build:lts-14.17

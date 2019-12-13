@@ -3,4 +3,5 @@
 *.swp
 tarballs/
 .stack-work/
-.stack-work-profile/
+.stack-work-*/
+_build/

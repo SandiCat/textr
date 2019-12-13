@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  build:
+    image: "fpco/stack-build:lts-14.17"
+    tty: true
+    ports:
+      - 8531:3000
+    volumes:
+      # - stack-root:/root/.stack
+      - ~/.stack:/root/.stack # doesn't work with :ro
+      - stack-work:/data/src/.stack-work-docker
+      - ../timesafe-backend:/data/src:ro
+
+volumes:
+  stack-work:
+  # stack-root:
