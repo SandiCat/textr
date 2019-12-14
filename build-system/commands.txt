@@ -1,10 +1,7 @@
-docker container create --name timesafe-cont \
-    -v timesafe-volume:/opt/build/src \
-    -v ~/.stack:/opt/build/stack-root \
-    fpco/stack-build:lts-14.17
+docker-compose exec build $COMMAND
+docker-compose exec build /bin/bash # za shell
 
-docker run -dit \
-    --name timesafe-cont \
-    -v timesafe-volume:/opt/build/src \
-    -v ~/.stack:/opt/build/stack-root \
-    fpco/stack-build:lts-14.17
+docker-compose down; docker-compose up -d
+
+docker build -f run.Dockerfile -t timesafe .
+docker run --rm -p 8532:3000 timesafe
