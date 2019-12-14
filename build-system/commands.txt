@@ -1,7 +1,9 @@
 docker-compose exec build $COMMAND
-docker-compose exec build /bin/bash # za shell
+docker-compose exec build /bin/bash # for a shell
 
 docker-compose down; docker-compose up -d
 
 docker build -f run.Dockerfile -t timesafe .
 docker run --rm -p 8532:3000 timesafe
+
+gcloud compute scp _build/bin/server instance-1:~ # push binary to the vm
