@@ -7,3 +7,5 @@ docker build -f run.Dockerfile -t timesafe .
 docker run --rm -p 8532:3000 timesafe
 
 gcloud compute scp _build/bin/server instance-1:~ # push binary to the vm
+
+cp (stack path --local-install-root)/bin/server ../build-system/_build/bin/

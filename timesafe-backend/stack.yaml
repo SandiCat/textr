@@ -6,9 +6,5 @@ packages:
 
 extra-deps:
 
-# settings needed to run inside docker (not the built-in docker supprot)
-
-system-ghc: true
-allow-different-user: true
-work-dir: .stack-work-docker
-local-bin-path: /data/bin
+docker:
+  enable: true
