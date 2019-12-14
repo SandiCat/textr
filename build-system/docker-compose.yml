@@ -11,7 +11,7 @@ services:
       - stack-root:/root/.stack
       # - ~/.stack:/root/.stack # doesn't work with :ro
       - stack-work:/data/src/.stack-work-docker
-      - ../timesafe-backend:/data/src:ro
+      - ../timesafe-backend:/data/src
       - ./_build/bin:/data/bin
 
 volumes:
