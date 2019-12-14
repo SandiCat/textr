@@ -1,4 +1,4 @@
-FROM fpco/stack-build-small:lts-14.17 as app
+FROM alpine
 RUN mkdir -p /opt/app
 WORKDIR /opt/app
 
