@@ -6,7 +6,7 @@ services:
     tty: true
     working_dir: /data/src
     ports:
-      - 8531:3000
+      - 8531:80
     volumes:
       - stack-root:/root/.stack
       # - ~/.stack:/root/.stack # doesn't work with :ro

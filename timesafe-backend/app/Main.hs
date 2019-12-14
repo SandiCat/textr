@@ -7,4 +7,4 @@ import qualified API
 import qualified Server
 
 main :: IO ()
-main = Warp.run 3000 $ serve API.apiProxy Server.server
+main = Warp.run 80 $ serve API.apiProxy Server.server
