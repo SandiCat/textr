@@ -5,3 +5,4 @@ tarballs/
 .stack-work/
 .stack-work-*/
 _build/
+.shake/
