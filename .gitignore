@@ -6,3 +6,4 @@ tarballs/
 .stack-work-*/
 _build/
 .shake/
+node_modules/

@@ -5,6 +5,9 @@
 		},
 		{
 			"path": "timesafe-backend"
+		},
+		{
+			"path": "timesafe-frontend"
 		}
 	],
 	"settings": {}
