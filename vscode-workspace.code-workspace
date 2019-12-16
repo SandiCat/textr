@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "build-system"
+		},
+		{
+			"path": "timesafe-backend"
+		}
+	],
+	"settings": {}
+}
