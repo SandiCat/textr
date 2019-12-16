@@ -4,6 +4,3 @@ packages:
 - .
 
 extra-deps:
-
-docker:
-  enable: true

@@ -44,8 +44,13 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 - -fno-warn-unused-imports
-# - -optl-static
-# - -optl-pthread
+# - -static
+# - -fPIC
+# cc-options: 
+# - -static 
+# ld-options: 
+# - -static 
+# - -pthread 
 
 default-extensions:
 - AutoDeriveTypeable
