@@ -14,7 +14,7 @@ projectName = "timesafe"
 dockerImageName = projectName <> "-image"
 
 main :: IO ()
-main = shakeArgs shakeOptions $ do
+main = shakeArgs shakeOptions {shakeFiles="_build"} $ do
     -- want [finalExe]
     
     phony "run-docker-container" $ do
