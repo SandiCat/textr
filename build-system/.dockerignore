@@ -3,6 +3,6 @@
 *~
 *.swp
 tarballs/
-.stack-work-profile/
+.stack-work-*/
 
 .git

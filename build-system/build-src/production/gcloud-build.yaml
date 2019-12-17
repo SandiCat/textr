@@ -1,0 +1,5 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [ 'build', '-t', 'gcr.io/timesafe-261820/timesafe', '-f', 'build-src/production/Dockerfile', '.' ]
+images:
+- 'gcr.io/timesafe-261820/timesafe'

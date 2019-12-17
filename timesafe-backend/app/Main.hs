@@ -9,5 +9,5 @@ import qualified Server
 main :: IO ()
 main = do
     putStrLn "server running"
-    Warp.run 80 $ serve API.apiProxy Server.server
+    Warp.run 8080 $ serve API.apiProxy Server.server
     putStrLn "server halted"

@@ -3,10 +3,19 @@ docker-compose exec build /bin/bash # for a shell
 
 docker-compose down; docker-compose up -d
 
-docker build -f run.Dockerfile -t timesafe .
-docker run --rm -p 8532:3000 timesafe
+docker build -t timesafe -f build-src/production/Dockerfile .  
+docker run --rm -p 8080:80 timesafe 
 
 gcloud compute scp _build/bin/server instance-1:~ # push binary to the vm
 
-stack --docker build --ghc-options='-optl-static -optl-pthread'
+stack \
+    --docker --docker-image "utdemir/ghc-musl:v4-libgmp-ghc865" \
+    --system-ghc \
+    build \
+    --ghc-options='-static -optl-static -optl-pthread -fPIC'
 cp (stack --docker path --local-install-root)/bin/server ../build-system/_build/bin/
+
+docker tag timesafe eu.gcr.io/timesafe-261820/timesafe
+docker push eu.gcr.io/timesafe-261820/timesafe 
+
+gcloud builds submit --config=build-src/production/gcloud-build.yaml  
