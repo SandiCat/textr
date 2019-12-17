@@ -7,3 +7,4 @@ tarballs/
 _build/
 .shake/
 node_modules/
+elm-stuff/
