@@ -18,4 +18,7 @@ cp (stack --docker path --local-install-root)/bin/server ../build-system/_build/
 docker tag timesafe eu.gcr.io/timesafe-261820/timesafe
 docker push eu.gcr.io/timesafe-261820/timesafe 
 
-gcloud builds submit --config=build-src/production/gcloud-build.yaml  
+gcloud builds submit --config=build-src/production/gcloud-build.yaml
+gcloud beta compute instances update-container instance-1
+
+gcloud config set builds/use_kaniko True  # cache builds

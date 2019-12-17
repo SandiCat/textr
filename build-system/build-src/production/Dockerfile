@@ -9,6 +9,7 @@ WORKDIR /data
 COPY build-src/production/entrypoint.sh /data/entrypoint.sh
 COPY build-src/nginx.conf /data/nginx.conf
 COPY _build/bin/server /data/server
+COPY _build/static /data/static
 
 EXPOSE 80
 CMD ["/data/entrypoint.sh"]
