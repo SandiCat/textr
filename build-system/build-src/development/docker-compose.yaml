@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: build-src/development/Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./build-src/:/data/build-src/:ro
+      - ./_build/:/data/_build/:ro
+  db:
+    image: postgres

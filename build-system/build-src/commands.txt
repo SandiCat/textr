@@ -22,3 +22,8 @@ gcloud builds submit --config=build-src/production/gcloud-build.yaml
 gcloud beta compute instances update-container instance-1
 
 gcloud config set builds/use_kaniko True  # cache builds
+
+pkill -15 -P $(pgrep entry)
+./entrypoint.sh
+
+docker-compose -f build-src/development/docker-compose.yaml --project-directory . [COMMAND]
