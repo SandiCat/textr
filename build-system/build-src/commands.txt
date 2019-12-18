@@ -14,6 +14,7 @@ stack \
     build \
     --ghc-options='-static -optl-static -optl-pthread -fPIC'
 cp (stack --docker path --local-install-root)/bin/server ../build-system/_build/bin/
+# ^ -f, if you're modifying a running server
 
 docker tag timesafe eu.gcr.io/timesafe-261820/timesafe
 docker push eu.gcr.io/timesafe-261820/timesafe 
@@ -23,7 +24,5 @@ gcloud beta compute instances update-container instance-1
 
 gcloud config set builds/use_kaniko True  # cache builds
 
-pkill -15 -P $(pgrep entry)
-./entrypoint.sh
-
 docker-compose -f build-src/development/docker-compose.yaml --project-directory . [COMMAND]
+docker-compose [...] restart web

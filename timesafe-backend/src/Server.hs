@@ -11,6 +11,7 @@ memStore = fromList
     [ (2, "broj dva")
     , (1, "we are number one")
     , (5, "2+2")
+    , (3, "tri za groš")
     ]
 
 

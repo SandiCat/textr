@@ -50,7 +50,7 @@ update msg model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Document Title"
+    { title = "Timesafe"
     , body =
         Element.paragraph []
             [ Element.text model.poem ]
