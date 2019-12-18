@@ -6,7 +6,7 @@ RUN apt-get -y install nginx
 RUN mkdir -p /data
 WORKDIR /data
 
-COPY build-src/production/entrypoint.sh /data/entrypoint.sh
+COPY build-src/entrypoint.sh /data/entrypoint.sh
 COPY build-src/nginx.conf /data/nginx.conf
 COPY _build/bin/server /data/server
 COPY _build/static /data/static
