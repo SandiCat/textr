@@ -1,4 +1,4 @@
 #!/bin/bash
 
-./server &
-nginx -c /data/nginx.conf
+./_build/bin/server &
+nginx -c /data/build-src/nginx.conf
