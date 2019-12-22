@@ -10,5 +10,17 @@
 			"path": "timesafe-frontend"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"sqltools.connections": [
+			{
+				"database": "postgres",
+				"dialect": "PostgreSQL",
+				"name": "DockerCompose",
+				"password": "password",
+				"port": 5432,
+				"server": "localhost",
+				"username": "postgres"
+			}
+		]
+	}
 }
