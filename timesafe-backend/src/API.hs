@@ -3,10 +3,14 @@
 module API where
 
 import Servant.API
+import Schema
 
 type API =
-    "home"  :> Get '[PlainText] Text :<|>
-    "thing" :> Capture "id" Int :> Get '[JSON] (Maybe (Int, Text))
+    "fruits" :> 
+        (Get '[JSON] [Fruit]
+        :<|> Capture "id" Int :> Get '[JSON] (Maybe Fruit)
+        )
+    :<|> "home"  :> Get '[PlainText] Text
 
 apiProxy :: Proxy API
 apiProxy = Proxy

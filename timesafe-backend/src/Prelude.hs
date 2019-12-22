@@ -3,5 +3,5 @@ module Prelude
        , module Data.String.Interpolate.IsString
        ) where
 
-import Relude
+import Relude hiding (id)
 import Data.String.Interpolate.IsString

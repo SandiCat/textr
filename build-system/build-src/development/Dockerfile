@@ -4,7 +4,7 @@
 FROM fpco/stack-build-small:lts-14.17
 
 RUN apt-get update
-RUN apt-get -y install nginx
+RUN apt-get -y install nginx libpq-dev
 
 RUN mkdir /data
 WORKDIR /data

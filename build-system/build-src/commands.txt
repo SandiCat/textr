@@ -2,6 +2,8 @@ docker-compose exec build $COMMAND
 docker-compose exec build /bin/bash # for a shell
 
 docker-compose down; docker-compose up -d
+# or
+docker-compose restart # but less options
 
 docker build -t timesafe -f build-src/production/Dockerfile .  
 docker run --rm -p 8080:80 timesafe 
@@ -26,5 +28,6 @@ gcloud config set builds/use_kaniko True  # cache builds
 
 docker-compose -f build-src/development/docker-compose.yaml --project-directory . [COMMAND]
 docker-compose [...] restart web
+docker-compose [...] up -d --build # when the dockerfile needs to be rebuilt
 
 psql -h localhost -U postgres -d postgres # connect to pg in container from host

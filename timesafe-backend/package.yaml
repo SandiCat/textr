@@ -28,12 +28,13 @@ dependencies:
 - text
 - vector
 # - lens
-# - beam-postgres
-# - beam-core
-# - servant-elm
+- beam-postgres
+- beam-core
+- servant-elm
 - servant-server
 - servant
 - warp
+- aeson
 
 ghc-options:
 - -Wall
