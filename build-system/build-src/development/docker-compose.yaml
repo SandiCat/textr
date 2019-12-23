@@ -10,6 +10,8 @@ services:
     volumes:
       - ./build-src/:/data/build-src/:ro
       - ./_build/:/data/_build/:ro
+    depends_on:
+      - db
   db:
     image: postgres
     volumes:

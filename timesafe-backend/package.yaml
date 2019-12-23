@@ -27,14 +27,16 @@ dependencies:
 - bytestring
 - text
 - vector
-# - lens
+- optics
 - beam-postgres
 - beam-core
 - servant-elm
 - servant-server
 - servant
+- postgresql-simple
 - warp
 - aeson
+- mtl
 
 ghc-options:
 - -Wall

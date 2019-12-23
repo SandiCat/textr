@@ -7,6 +7,9 @@ import           Database.Beam
 import qualified Data.Aeson as Aeson
 
 
+db :: DatabaseSettings be DB
+db = defaultDbSettings 
+
 data DB f = DB
     { _dbFruit:: f (TableEntity FruitT)
     } deriving (Generic, Database be)
@@ -16,7 +19,7 @@ data DB f = DB
 data FruitT f = Fruit
     { _fruitId :: C f Int
     , _fruitName :: C f Text
-    , _fruitSugarContent :: C f (Maybe Float)
+    , _fruitSugarContent :: C f (Maybe Double)
     } deriving (Generic, Beamable)
 
 
