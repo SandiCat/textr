@@ -7,7 +7,7 @@ import Schema
 import Database.Beam
 import Database.Beam.Postgres (Postgres, Pg)
 import Database.PostgreSQL.Simple (Connection)
-import MonadConstraints
+import Capabilities
 
 
 server :: MonadPostgres m => ServerT API.API m

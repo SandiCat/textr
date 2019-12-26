@@ -8,3 +8,4 @@ _build/
 .shake/
 node_modules/
 elm-stuff/
+secrets/

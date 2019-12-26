@@ -95,6 +95,7 @@ default-extensions:
 - TypeFamilies
 - TypeSynonymInstances
 - ViewPatterns
+- NumericUnderscores
 
 library:
   source-dirs: src

@@ -9,7 +9,7 @@ services:
       - "8080:80"
     volumes:
       - ./build-src/:/data/build-src/:ro
-      - ./_build/:/data/_build/:ro
+      - ./_build/development/:/data/_build/:ro
     depends_on:
       - db
   db:

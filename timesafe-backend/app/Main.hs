@@ -4,6 +4,9 @@ import Servant.Server
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Database.Beam.Postgres as Beam
 import qualified Control.Exception as Exception 
+import qualified Data.Aeson as Aeson
+import           System.Environment             ( getArgs )
+import           Control.Concurrent (threadDelay)
 
 import qualified API
 import qualified MonadStack
@@ -13,14 +16,17 @@ keepTrying :: IO a -> IO a
 keepTrying action =
     Exception.catch @Exception.SomeException
         action
-        (const $ keepTrying action)
+        $ \e -> do
+            print e
+            threadDelay $ 100_000
+            keepTrying action
+
+instance Aeson.FromJSON Beam.ConnectInfo
 
 main :: IO ()
 main = do
-    conn <- keepTrying $ Beam.connect $
-        Beam.defaultConnectInfo
-            { Beam.connectPassword = "password" 
-            , Beam.connectHost = "db"
-            }
+    [configPath] <- getArgs
+    Just connInfo <- Aeson.decodeFileStrict' @Beam.ConnectInfo configPath
+    conn <- keepTrying $ Beam.connect $ connInfo
     putStrLn "server running"
     Warp.run 8080 $ serve API.apiProxy $ MonadStack.hoistedServer conn

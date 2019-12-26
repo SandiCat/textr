@@ -31,3 +31,5 @@ docker-compose [...] restart web
 docker-compose [...] up -d --build # when the dockerfile needs to be rebuilt
 
 psql -h localhost -U postgres -d postgres # connect to pg in container from host
+
+gcloud sql connect timesafe-db2 --user=postgres --quiet

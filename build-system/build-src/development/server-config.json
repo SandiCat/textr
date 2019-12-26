@@ -1,0 +1,7 @@
+{
+    "connectHost": "db",
+    "connectPort": 5432,
+    "connectUser": "postgres",
+    "connectPassword": "password",
+    "connectDatabase": "postgres"
+}
