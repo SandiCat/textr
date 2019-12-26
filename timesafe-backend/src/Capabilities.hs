@@ -1,4 +1,4 @@
-module MonadConstraints where
+module Capabilities where
 
 import           Database.Beam                  ( MonadBeam )
 import Database.Beam.Postgres (Postgres)

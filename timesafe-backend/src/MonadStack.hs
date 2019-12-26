@@ -13,7 +13,7 @@ type AppM a = ExceptT Servant.ServerError Beam.Pg a
 
 -- there is not monad transformer version of Pg, which is a shame, so we have to
 -- hoist in a roundabout way
-
+-- TODO: write in a simpler way with some kind of mapInner :: (m a -> m' b) -> t m a -> t m b
 appMToHandler :: Connection -> AppM a -> Servant.Handler a
 appMToHandler conn appM = do
     res <- liftIO $ Beam.runBeamPostgres conn $ runExceptT appM
