@@ -30,13 +30,13 @@ dependencies:
 - optics
 - beam-postgres
 - beam-core
-- servant-elm
 - servant-server
 - servant
 - postgresql-simple
 - warp
 - aeson
 - mtl
+- filepath
 
 ghc-options:
 - -Wall
@@ -101,9 +101,20 @@ library:
   source-dirs: src
 
 executables:
+  generate-elm:
+    main:                Main.hs
+    source-dirs:         generate-elm
+    dependencies:
+    - timesafe-backend
+    - servant-elm
+
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
   server:
     main:                Main.hs
-    source-dirs:         app
+    source-dirs:         server
     dependencies:
     - timesafe-backend
     - optparse-simple

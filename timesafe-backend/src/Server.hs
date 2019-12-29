@@ -13,7 +13,7 @@ import Capabilities
 server :: MonadPostgres m => ServerT API.API m
 server =
     ( allFruits :<|> fruitById ) 
-    :<|> return "Hello world" 
+    -- :<|> return "Is where the heart is" 
 
 allFruits :: MonadPostgres m => m [Fruit]
 allFruits =

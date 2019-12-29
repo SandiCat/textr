@@ -10,7 +10,7 @@ type API =
         (Get '[JSON] [Fruit]
         :<|> Capture "id" Int :> Get '[JSON] (Maybe Fruit)
         )
-    :<|> "home"  :> Get '[PlainText] Text
+    -- :<|> "home"  :> Get '[PlainText] Text
 
 apiProxy :: Proxy API
 apiProxy = Proxy

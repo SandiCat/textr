@@ -3,6 +3,7 @@ module Main exposing (Model, Msg, init, subscriptions, update, view)
 import Browser
 import Element
 import Http
+import Generated.Api
 
 
 main : Program () Model Msg
@@ -23,6 +24,7 @@ type alias Model =
 init : () -> ( Model, Cmd Msg )
 init _ =
     ( Model "", requestPoem )
+
 
 requestPoem : Cmd Msg
 requestPoem =
@@ -52,8 +54,11 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Timesafe"
     , body =
-        Element.paragraph []
-            [ Element.text model.poem ]
+        Element.column []
+            [ Element.text "hello world"
+            , Element.paragraph []
+                [ Element.text model.poem ]
+            ]
             |> Element.layout []
             |> List.singleton
     }
