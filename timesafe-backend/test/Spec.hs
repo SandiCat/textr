@@ -14,9 +14,11 @@ main = hspec $ do
         it "can be queried in the db" $ do
             let connInfo = ConnectInfo "localhost" 5432 "postgres" "password" "postgres"
             conn <- connect connInfo
-            runBeamPostgresDebug putStrLn conn $ runSelectReturningOne 
+            Just post <- runBeamPostgresDebug putStrLn conn $ runSelectReturningOne 
                 $ select
                 $ filter_ (\x -> _postId x ==. val_ 2)
                 $ all_ $ (_dbPost db)
+
+            print post
 
             return ()
