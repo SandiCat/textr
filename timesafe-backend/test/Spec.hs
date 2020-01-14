@@ -1,8 +1,22 @@
-module Spec where
+module Main where
 
 import           Test.Hspec
 
+import Database.Beam
+import Database.Beam.Postgres 
+
+import Schema
+
+
 main :: IO ()
 main = hspec $ do
-    describe "post" $ do
-        it "works" $ True `shouldBe` True
+    describe "Post" $ do
+        it "can be queried in the db" $ do
+            let connInfo = ConnectInfo "localhost" 5432 "postgres" "password" "postgres"
+            conn <- connect connInfo
+            runBeamPostgresDebug putStrLn conn $ runSelectReturningOne 
+                $ select
+                $ filter_ (\x -> _postId x ==. val_ 2)
+                $ all_ $ (_dbPost db)
+
+            return ()

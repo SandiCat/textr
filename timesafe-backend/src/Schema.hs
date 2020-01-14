@@ -13,7 +13,8 @@ db :: DatabaseSettings be DB
 db = defaultDbSettings 
 
 data DB f = DB
-    { _dbFruit:: f (TableEntity FruitT)
+    { _dbFruit :: f (TableEntity FruitT)
+    , _dbPost :: f (TableEntity PostT)
     } deriving (Generic, Database be)
 
 
