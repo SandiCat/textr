@@ -2,8 +2,9 @@ module Main exposing (Model, Msg, init, subscriptions, update, view)
 
 import Browser
 import Element
+import Generated.Api as Api
+import Generated.Fruit as Fruit
 import Http
-import Generated.Api
 
 
 main : Program () Model Msg
@@ -17,32 +18,24 @@ main =
 
 
 type alias Model =
-    { poem : String
+    { fruits : List Fruit.Fruit
     }
 
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Model "", requestPoem )
-
-
-requestPoem : Cmd Msg
-requestPoem =
-    Http.get
-        { url = "/static/doc1.txt"
-        , expect = Http.expectString GotPoem
-        }
+    ( Model [], Cmd.map (Result.toMaybe >> GotFruits) Api.getFruits )
 
 
 type Msg
-    = GotPoem (Result Http.Error String)
+    = GotFruits (Maybe (List Fruit.Fruit))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotPoem (Ok poem) ->
-            ( { model | poem = poem }
+        GotFruits (Just fruits) ->
+            ( { model | fruits = fruits }
             , Cmd.none
             )
 
@@ -54,12 +47,21 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Timesafe"
     , body =
-        Element.column []
-            [ Element.text "hello world"
-            , Element.paragraph []
-                [ Element.text model.poem ]
-            ]
-            |> Element.layout []
+        Element.column [ Element.padding 20, Element.spacing 10 ]
+            (List.map
+                (\fruit ->
+                    Element.row [ Element.spacing 20, Element.width Element.fill ]
+                        [ Element.text fruit.name
+                        , fruit.sugarContent
+                            |> Maybe.map String.fromFloat
+                            |> Maybe.withDefault "N/A"
+                            |> Element.text
+                            |> Element.el [ Element.alignRight ]
+                        ]
+                )
+                model.fruits
+            )
+            |> Element.layout [ ]
             |> List.singleton
     }
 

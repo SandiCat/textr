@@ -39,6 +39,27 @@ packages:
       sha256: cfd66c0a53be1b45eae72df112ea1158614458bb7b1c9cbbe3410b04ab011ec6
   original:
     hackage: indexed-profunctors-0.1@sha256:ddf618d0d4c58319c1e735e746bc69a1021f13b6f475dc9614b80af03432e6d4,1016
+- completed:
+    hackage: servant-to-elm-0.2.0.0@sha256:f8def22e87e1b79044c8dfab0a23d14f33ec31e9fde987218e10bb41f9e0c4f8,2958
+    pantry-tree:
+      size: 433
+      sha256: cd0496f0a874a8c63ee4f720a3e4581635283daaac76460b6a64e4ec86eb3a75
+  original:
+    hackage: servant-to-elm-0.2.0.0@sha256:f8def22e87e1b79044c8dfab0a23d14f33ec31e9fde987218e10bb41f9e0c4f8,2958
+- completed:
+    hackage: elm-syntax-0.1.0.0@sha256:9ce07439e8937bc2f2dc430ddfb22bd24b1364aef45693cda698afb52c4bc051,2164
+    pantry-tree:
+      size: 711
+      sha256: 902240b6678be844c21af281b57437bc3c3f67ab6303621f1825b2eff4ec6eee
+  original:
+    hackage: elm-syntax-0.1.0.0@sha256:9ce07439e8937bc2f2dc430ddfb22bd24b1364aef45693cda698afb52c4bc051,2164
+- completed:
+    hackage: haskell-to-elm-0.2.0.0@sha256:3ceb0aa9a1bc588da5f880122da07312b0180d319bdf4c385b671555654feebd,2949
+    pantry-tree:
+      size: 439
+      sha256: f8a4e3e8f07794abce8766bbe2d729cb9cadfc624611cee5cbd587c3ff5acf9f
+  original:
+    hackage: haskell-to-elm-0.2.0.0@sha256:3ceb0aa9a1bc588da5f880122da07312b0180d319bdf4c385b671555654feebd,2949
 snapshots:
 - completed:
     size: 524799

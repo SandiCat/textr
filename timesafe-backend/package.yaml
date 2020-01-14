@@ -37,6 +37,8 @@ dependencies:
 - aeson
 - mtl
 - filepath
+- generics-sop
+- unordered-containers
 
 ghc-options:
 - -Wall
@@ -103,18 +105,22 @@ library:
 executables:
   generate-elm:
     main:                Main.hs
-    source-dirs:         generate-elm
+    source-dirs:         app/generate-elm
     dependencies:
     - timesafe-backend
-    - servant-elm
+    - servant-to-elm
+    - haskell-to-elm
+    - elm-syntax
+    - directory
 
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
+
   server:
     main:                Main.hs
-    source-dirs:         server
+    source-dirs:         app/server
     dependencies:
     - timesafe-backend
     - optparse-simple
