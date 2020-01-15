@@ -3,14 +3,20 @@
 module API where
 
 import Servant.API
-import Schema
+import qualified Schema
 
 type API =
-    "fruits" :> 
-        (Get '[JSON] [Fruit]
-        :<|> Capture "id" Int :> Get '[JSON] (Maybe Fruit)
+    "api" :>
+        ( "fruits" :> 
+            (Get '[JSON] [Schema.Fruit]
+            :<|> Capture "id" Int :> Get '[JSON] (Maybe Schema.Fruit)
+            )
+        ) :<|>
+        ( "posts" :>
+            (Get '[JSON] [Schema.Post]
+            :<|> Capture "id" Int :> Get '[JSON] (Maybe Schema.Post)
+            )
         )
-    -- :<|> "home"  :> Get '[PlainText] Text
 
 apiProxy :: Proxy API
 apiProxy = Proxy

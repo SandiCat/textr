@@ -1,27 +1,44 @@
-module Server (server) where
+module Server
+    ( server
+    )
+where
 
-import Servant.Server
-import Servant.API
-import API
-import Schema
-import Database.Beam
-import Database.Beam.Postgres (Postgres, Pg)
-import Database.PostgreSQL.Simple (Connection)
-import Capabilities
-
+import           Servant.Server
+import           Servant.API
+import           API
+import           Schema
+import           Database.Beam
+import           Database.Beam.Backend.SQL      ( BeamSqlBackend )
+import           Database.Beam.Schema.Tables    ( WithConstraint )
+import           Database.Beam.Postgres         ( Postgres
+                                                , Pg
+                                                )
+import           Database.PostgreSQL.Simple     ( Connection )
+import           Capabilities
 
 server :: MonadPostgres m => ServerT API.API m
 server =
-    ( allFruits :<|> fruitById ) 
-    -- :<|> return "Is where the heart is" 
+    (allRows (_dbFruit db) :<|> rowById (_dbFruit db) . FruitKey) :<|>
+    (allRows (_dbPost db) :<|> rowById (_dbPost db) . PostKey)
 
-allFruits :: MonadPostgres m => m [Fruit]
-allFruits =
-    runSelectReturningList $ select $ all_ $ (_dbFruit db)
+allRows
+    :: ( MonadPostgres m
+       , Database Postgres db
+       , FromBackendRow Postgres (table Identity)
+       , Beamable table
+       )
+    => DatabaseEntity Postgres db (TableEntity table)
+    -> m [table Identity]
+allRows table = runSelectReturningList $ select $ all_ table
 
-fruitById :: MonadPostgres m => Int -> m (Maybe Fruit)
-fruitById id = 
-    runSelectReturningOne 
+rowById
+    :: _ -- the constraints are too scary to name
+    => DatabaseEntity be db (TableEntity table)
+    -> PrimaryKey table Identity
+    -> m (Maybe (table Identity))
+rowById table id =
+    runSelectReturningOne
         $ select
-        $ filter_ (\fruit -> _fruitId fruit ==. val_ id)
-        $ all_ $ (_dbFruit db)
+        $ filter_ (\row -> primaryKey row ==. val_ id)
+        $ all_
+        $ table
