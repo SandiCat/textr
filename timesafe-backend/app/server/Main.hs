@@ -23,10 +23,15 @@ keepTrying action =
 
 instance Aeson.FromJSON Beam.ConnectInfo
 
-main :: IO ()
-main = do
-    [configPath] <- getArgs
+withConfigFile :: FilePath -> IO ()
+withConfigFile configPath = do
     Just connInfo <- Aeson.decodeFileStrict' @Beam.ConnectInfo configPath
     conn <- keepTrying $ Beam.connect $ connInfo
     putStrLn "server running"
     Warp.run 8080 $ serve API.apiProxy $ MonadStack.hoistedServer conn
+
+
+main :: IO ()
+main = do
+    [configPath] <- getArgs
+    withConfigFile configPath
