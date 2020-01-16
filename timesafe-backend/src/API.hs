@@ -6,7 +6,7 @@ import Servant.API
 import qualified Schema
 
 type API =
-    "api" :>
+    "api" :> (
         ( "fruits" :> 
             (Get '[JSON] [Schema.Fruit]
             :<|> Capture "id" Int :> Get '[JSON] (Maybe Schema.Fruit)
@@ -17,6 +17,7 @@ type API =
             :<|> Capture "id" Int :> Get '[JSON] (Maybe Schema.Post)
             )
         )
+    )
 
 apiProxy :: Proxy API
 apiProxy = Proxy
