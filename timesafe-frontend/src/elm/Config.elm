@@ -1,4 +1,4 @@
 module Config exposing (..)
 
 urlBase : String
-urlBase = ""
+urlBase = "api"

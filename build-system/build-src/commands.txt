@@ -43,3 +43,7 @@ ghcid -c "stack repl --main-is :server" \
 
 yarn parcel src/index.html
 
+devd \
+    /=http://localhost:1234 \
+    /api/=http://localhost:8080/api/ \
+    /static/=./build-system/_build/development/static/
