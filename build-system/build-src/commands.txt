@@ -40,3 +40,6 @@ ghcid -c "stack repl --main-is :server" \
     --reload app/ \
     --reload src/ \
     -T Main.develMain
+
+yarn parcel src/index.html
+

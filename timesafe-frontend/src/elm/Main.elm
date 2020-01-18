@@ -47,21 +47,24 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Timesafe"
     , body =
-        Element.column [ Element.padding 20, Element.spacing 10 ]
-            (List.map
-                (\fruit ->
-                    Element.row [ Element.spacing 20, Element.width Element.fill ]
-                        [ Element.text fruit.name
-                        , fruit.sugarContent
-                            |> Maybe.map String.fromFloat
-                            |> Maybe.withDefault "N/A"
-                            |> Element.text
-                            |> Element.el [ Element.alignRight ]
-                        ]
+        Element.column []
+            [ Element.text "heydeee"
+            , Element.column [ Element.padding 20, Element.spacing 10 ]
+                (List.map
+                    (\fruit ->
+                        Element.row [ Element.spacing 20, Element.width Element.fill ]
+                            [ Element.text fruit.name
+                            , fruit.sugarContent
+                                |> Maybe.map String.fromFloat
+                                |> Maybe.withDefault "N/A"
+                                |> Element.text
+                                |> Element.el [ Element.alignRight ]
+                            ]
+                    )
+                    model.fruits
                 )
-                model.fruits
-            )
-            |> Element.layout [ ]
+            ]
+            |> Element.layout []
             |> List.singleton
     }
 

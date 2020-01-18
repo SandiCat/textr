@@ -16,7 +16,7 @@ import TypesElm
 import SchemaElm
 
 
-frontendSrcDir = ".." </> "timesafe-frontend" </> "src"
+frontendElmSrcDir = ".." </> "timesafe-frontend" </> "src" </> "elm"
 
 main :: IO ()
 main = do
@@ -32,4 +32,4 @@ main = do
 
     forM_ (HashMap.toList modules) $ \(moduleName, contents) -> do
         let moduleRelDir = foldl1' (</>) $ map toString moduleName
-        writeFileText (frontendSrcDir </> moduleRelDir <.> "elm") (show contents)
+        writeFileText (frontendElmSrcDir </> moduleRelDir <.> "elm") (show contents)
