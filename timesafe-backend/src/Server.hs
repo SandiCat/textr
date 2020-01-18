@@ -18,8 +18,11 @@ import           Capabilities
 
 server :: MonadPostgres m => ServerT API.API m
 server =
-    (allRows (_dbFruit db) :<|> rowById (_dbFruit db) . FruitKey) :<|>
-    (allRows (_dbPost db) :<|> rowById (_dbPost db) . PostKey)
+    (
+        (allRows (_dbFruit db) :<|> rowById (_dbFruit db) . FruitKey) :<|>
+        (allRows (_dbPost db) :<|> rowById (_dbPost db) . PostKey)
+    ) :<|>
+    ( return "hello world 12211" )
 
 allRows
     :: ( MonadPostgres m
@@ -40,5 +43,4 @@ rowById table id =
     runSelectReturningOne
         $ select
         $ filter_ (\row -> primaryKey row ==. val_ id)
-        $ all_
-        $ table
+        $ all_ table

@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  db:
+    image: postgres
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - "8432:5432"  # for access on host
+    environment:
+      POSTGRES_PASSWORD: password
+
+volumes:
+  db-data:

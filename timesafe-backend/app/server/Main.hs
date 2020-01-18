@@ -30,6 +30,8 @@ withConfigFile configPath = do
     putStrLn "server running"
     Warp.run 8080 $ serve API.apiProxy $ MonadStack.hoistedServer conn
 
+develMain = withConfigFile "../build-system/build-src/dev-host/server-config.json"
+
 
 main :: IO ()
 main = do

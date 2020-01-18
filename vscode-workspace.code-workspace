@@ -20,6 +20,15 @@
 				"port": 5432,
 				"server": "localhost",
 				"username": "postgres"
+			},
+			{
+				"database": "postgres",
+				"dialect": "PostgreSQL",
+				"name": "local docker",
+				"password": "password",
+				"port": 8432,
+				"server": "localhost",
+				"username": "postgres"
 			}
 		]
 	}

@@ -35,3 +35,8 @@ psql -h localhost -U postgres -d postgres # connect to pg in container from host
 gcloud sql connect timesafe-db2 --user=postgres --quiet
 
 stack build :generate-elm --fast
+
+ghcid -c "stack repl --main-is :server" \
+    --reload app/ \
+    --reload src/ \
+    -T Main.develMain
