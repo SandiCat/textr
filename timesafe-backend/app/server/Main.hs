@@ -18,7 +18,7 @@ keepTrying action =
         action
         $ \e -> do
             print e
-            threadDelay $ 100_000
+            threadDelay $ 2_000_000
             keepTrying action
 
 instance Aeson.FromJSON Beam.ConnectInfo
