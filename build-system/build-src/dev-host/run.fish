@@ -4,7 +4,8 @@ cd $dir/build-system/build-src/dev-host/
 docker-compose up &
 
 cd $dir/timesafe-backend/
-ghcid -c "stack repl --main-is :server" \
+ghcid -W \
+    -c "stack repl --main-is :server" \
     --no-height-limit \
     --reload app/ \
     --reload src/ \
