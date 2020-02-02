@@ -116,6 +116,9 @@ view model =
                                 [ Element.centerX
                                 , Element.height Element.fill
                                 , Element.width Element.fill
+                                -- this is required to get the scrollbar to work https://discourse.elm-lang.org/t/elm-ui-parent-element-grows-to-encompass-children-instead-of-scrolling/5032/5
+                                , Element.clip
+                                , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
                                 ]
                                 [ viewPost post
                                 , Element.column
@@ -157,19 +160,12 @@ viewPost post =
         -- , Element.height <| Element.px 400
         ]
         [ Element.el
-            [ Element.clip
-            , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
-            , Element.height Element.fill
+            [ Element.height Element.fill
             , Element.width Element.fill
+            , Element.scrollbarY
             ]
-            (Element.el
-                [ Element.height Element.fill
-                , Element.width Element.fill
-                , Element.scrollbarY
-                ]
-                (Element.paragraph []
-                    [ Element.text post.body ]
-                )
+            (Element.paragraph []
+                [ Element.text post.body ]
             )
         , Element.row
             [ Element.alignBottom
