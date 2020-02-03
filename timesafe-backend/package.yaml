@@ -39,6 +39,7 @@ dependencies:
 - filepath
 - generics-sop
 - unordered-containers
+- tmp-postgres >= 1.34.1.0
 
 ghc-options:
 - -Wall

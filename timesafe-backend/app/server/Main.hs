@@ -7,6 +7,9 @@ import qualified Control.Exception as Exception
 import qualified Data.Aeson as Aeson
 import           System.Environment             ( getArgs )
 import           Control.Concurrent (threadDelay)
+import qualified Database.Postgres.Temp as PgTemp
+import qualified Database.PostgreSQL.Simple as Pg
+import System.FilePath ((</>))
 
 import qualified API
 import qualified MonadStack
@@ -30,8 +33,20 @@ withConfigFile configPath = do
     putStrLn "server running"
     Warp.run 8080 $ serve API.apiProxy $ MonadStack.hoistedServer conn
 
-develMain = withConfigFile "../build-system/build-src/dev-host/server-config.json"
 
+executeSqlFile :: Pg.Connection -> FilePath -> IO Int64
+executeSqlFile conn path = do
+    queryText <- readFile path
+    Pg.execute_ conn $ fromString queryText
+
+develMain :: IO (Either PgTemp.StartError ())
+develMain =
+    PgTemp.with $ \db -> do
+        conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
+        _ <- executeSqlFile conn $ "sql" </> "create_schema.sql"
+        _ <- executeSqlFile conn $ "sql" </> "populate_db.sql"
+        putStrLn "server running"
+        Warp.run 8080 $ serve API.apiProxy $ MonadStack.hoistedServer conn
 
 main :: IO ()
 main = do

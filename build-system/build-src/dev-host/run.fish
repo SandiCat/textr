@@ -1,8 +1,5 @@
 set dir /data/code/haskell/timesafe
 
-cd $dir/build-system/build-src/dev-host/
-docker-compose up &
-
 cd $dir/timesafe-backend/
 ghcid -W \
     -c "stack repl --main-is :server" \
