@@ -6,6 +6,7 @@ ghcid -W \
     --no-height-limit \
     --reload app/ \
     --reload src/ \
+    --reload sql/ \
     -T Main.develMain &
 
 cd $dir/timesafe-frontend/
