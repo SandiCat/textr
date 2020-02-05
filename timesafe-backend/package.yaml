@@ -30,6 +30,7 @@ dependencies:
 - optics
 - beam-postgres
 - beam-core
+- beam-migrate
 - servant-server
 - servant
 - postgresql-simple

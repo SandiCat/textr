@@ -8,7 +8,6 @@ import qualified Data.Aeson as Aeson
 import qualified Generics.SOP as SOP
 import qualified Types
 
-
 db :: DatabaseSettings be DB
 db = defaultDbSettings 
 

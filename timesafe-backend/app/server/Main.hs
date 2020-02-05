@@ -12,7 +12,10 @@ import qualified Database.PostgreSQL.Simple as Pg
 import System.FilePath ((</>))
 
 import qualified API
+import Database.Beam.Migrate.Simple
 import qualified MonadStack
+import Database.Beam.Postgres.Migrate (migrationBackend)
+import qualified Migration
 
 -- ugly hack until i learn more about exceptions
 keepTrying :: IO a -> IO a
@@ -45,6 +48,15 @@ develMain =
         conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
         _ <- executeSqlFile conn $ "sql" </> "create_schema.sql"
         _ <- executeSqlFile conn $ "sql" </> "populate_db.sql"
+
+        -- TODO parse don't validate
+        verifyRes <- Beam.runBeamPostgres conn $ verifySchema migrationBackend Migration.migrationDb
+        case verifyRes of
+            VerificationSucceeded -> putStrLn "schema valid!"
+            VerificationFailed preds -> do
+                putStrLn "schema invalid!"
+                print preds
+
         putStrLn "server running"
         Warp.run 8080 $ serve API.apiProxy $ MonadStack.hoistedServer conn
 

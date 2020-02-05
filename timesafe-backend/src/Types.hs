@@ -6,6 +6,10 @@ module Types where
 import qualified Data.Aeson as Aeson
 import qualified Generics.SOP as SOP
 import           Database.Beam.Backend.SQL
+import           Database.Beam.Migrate          ( HasDefaultSqlDataType
+                                                , defaultSqlDataType
+                                                )
+import qualified Database.Beam.Backend.SQL as SQL 
 import Database.Beam.Postgres (Postgres)
 
 data Sex
@@ -19,6 +23,9 @@ instance Aeson.FromJSON Sex
 -- perhaps it would be better to marshal it using postgres' support for json, but this is simpler
 instance HasSqlValueSyntax be String => HasSqlValueSyntax be Sex where
     sqlValueSyntax = autoSqlValueSyntax
+
+instance HasDefaultSqlDataType Postgres Sex where
+    defaultSqlDataType _ _ _ = SQL.varCharType Nothing Nothing
 
 instance FromBackendRow Postgres Sex where
     fromBackendRow = fromMaybe (error "invalid format") . readMaybe <$> fromBackendRow
@@ -36,6 +43,9 @@ instance Aeson.FromJSON Gender
 
 instance HasSqlValueSyntax be String => HasSqlValueSyntax be Gender where
     sqlValueSyntax = autoSqlValueSyntax
+
+instance HasDefaultSqlDataType Postgres Gender where
+    defaultSqlDataType _ _ _ = SQL.varCharType Nothing Nothing
 
 instance FromBackendRow Postgres Gender where
     fromBackendRow =
