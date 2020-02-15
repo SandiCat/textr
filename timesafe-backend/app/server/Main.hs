@@ -46,16 +46,9 @@ develMain :: IO (Either PgTemp.StartError ())
 develMain =
     PgTemp.with $ \db -> do
         conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
-        _ <- executeSqlFile conn $ "sql" </> "create_schema.sql"
+        Beam.runBeamPostgres conn $ autoMigrate migrationBackend Migration.migrationDb
+        
         _ <- executeSqlFile conn $ "sql" </> "populate_db.sql"
-
-        -- TODO parse don't validate
-        verifyRes <- Beam.runBeamPostgres conn $ verifySchema migrationBackend Migration.migrationDb
-        case verifyRes of
-            VerificationSucceeded -> putStrLn "schema valid!"
-            VerificationFailed preds -> do
-                putStrLn "schema invalid!"
-                print preds
 
         putStrLn "server running"
         Warp.run 8080 $ serve API.apiProxy $ MonadStack.hoistedServer conn
