@@ -4,6 +4,7 @@
 module Schema where
 
 import           Database.Beam
+import Database.Beam.Backend.SQL.Types
 import qualified Data.Aeson as Aeson
 import qualified Generics.SOP as SOP
 import qualified Types
@@ -19,7 +20,7 @@ data DB f = DB
 
 
 data FruitT f = Fruit
-    { _fruitId :: C f Int
+    { _fruitId :: C f (SqlSerial Int)
     , _fruitName :: C f Text
     , _fruitSugarContent :: C f (Maybe Double)
     } deriving (Generic, Beamable, SOP.Generic, SOP.HasDatatypeInfo)
@@ -31,7 +32,7 @@ instance Aeson.ToJSON Fruit
 
 instance Table FruitT where
     data PrimaryKey FruitT f =
-        FruitKey (C f Int)
+        FruitKey (C f (SqlSerial Int))
         deriving (Generic, Beamable)
     primaryKey = FruitKey <$> _fruitId
 
@@ -43,7 +44,7 @@ instance Aeson.ToJSON FruitID
 
 
 data PostT f = Post
-    { _postId :: C f Int
+    { _postId :: C f (SqlSerial Int)
     , _postBody :: C f Text
     , _postNickname :: C f Text
     , _postAge :: C f Int
@@ -57,7 +58,7 @@ instance Aeson.ToJSON Post
 
 instance Table PostT where
     data PrimaryKey PostT f =
-        PostKey (C f Int)
+        PostKey (C f (SqlSerial Int))
         deriving (Generic, Beamable)
     primaryKey = PostKey <$> _postId
 

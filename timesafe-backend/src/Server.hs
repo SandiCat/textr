@@ -14,13 +14,14 @@ import           Database.Beam.Postgres         ( Postgres
                                                 , Pg
                                                 )
 import           Database.PostgreSQL.Simple     ( Connection )
+import Database.Beam.Backend.SQL.BeamExtensions
 import           Capabilities
 
 server :: MonadPostgres m => ServerT API.API m
 server =
     (
-        (allRows (_dbFruit db) :<|> rowById (_dbFruit db) . FruitKey) :<|>
-        (allRows (_dbPost db) :<|> rowById (_dbPost db) . PostKey)
+        (allRows (_dbFruit db) :<|> rowById (_dbFruit db) . FruitKey . SqlSerial) :<|>
+        (allRows (_dbPost db) :<|> rowById (_dbPost db) . PostKey . SqlSerial)
     ) :<|>
     ( return "hello world 12211" )
 

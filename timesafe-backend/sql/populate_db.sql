@@ -1,19 +1,19 @@
 insert into fruit 
-    (id, name, sugar_content)
+    (name, sugar_content)
 values
-    (0, 'apple', 0.213),
-    (1, 'orange', 3.211),
-    (2, 'banana', 34.323);
+    ('apple', 0.213),
+    ('orange', 3.211),
+    ('banana', 34.323);
 
-insert into post (id,
+insert into post (
     body,
     nickname,
     age,
     gender
 )
 values
-    (0, 'test post, please ignore.', 'sandi', 22, 'Cis Male'),
-    (1, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ut ligula libero. Aenean dapibus elit sed molestie malesuada. Nam et imperdiet massa. Phasellus rutrum lacinia ante eu tincidunt. Pellentesque efficitur mattis dolor, quis hendrerit lacus hendrerit id. Pellentesque vel massa ultrices nisl varius euismod. Integer lectus nisl, eleifend et metus non, blandit hendrerit sapien. In diam eros, bibendum a augue nec, ultricies semper magna. Proin consequat ex ac orci ornare elementum. Phasellus sagittis ornare dui vitae sagittis.
+    ('test post, please ignore.', 'sandi', 22, 'Cis Male'),
+    ('Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque ut ligula libero. Aenean dapibus elit sed molestie malesuada. Nam et imperdiet massa. Phasellus rutrum lacinia ante eu tincidunt. Pellentesque efficitur mattis dolor, quis hendrerit lacus hendrerit id. Pellentesque vel massa ultrices nisl varius euismod. Integer lectus nisl, eleifend et metus non, blandit hendrerit sapien. In diam eros, bibendum a augue nec, ultricies semper magna. Proin consequat ex ac orci ornare elementum. Phasellus sagittis ornare dui vitae sagittis.
 
 Duis orci risus, efficitur non facilisis et, iaculis ut lorem. Nullam volutpat neque ac quam pharetra sodales. Vestibulum ac faucibus purus. Suspendisse id sapien velit. Nam interdum interdum orci, ut commodo sapien dictum non. Morbi imperdiet massa pharetra auctor ultrices. Donec congue bibendum massa ut finibus.
 
