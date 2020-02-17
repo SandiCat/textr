@@ -12,7 +12,6 @@ import qualified API
 import qualified Schema
 import qualified Types
 
-import TypesElm
 import SchemaElm
 
 
@@ -23,10 +22,7 @@ main = do
     let definitions =
             map (elmEndpointDefinition "Config.urlBase" ["Generated", "Api"])
                 (elmEndpoints @API.REST)
-                <> jsonDefinitions @Schema.Fruit
                 <> jsonDefinitions @Schema.Post
-                <> jsonDefinitions @Types.Sex
-                <> jsonDefinitions @Types.Gender
 
         modules = Pretty.modules definitions
 

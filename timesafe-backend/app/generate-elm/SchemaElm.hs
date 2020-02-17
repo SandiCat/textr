@@ -1,16 +1,21 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE DeriveAnyClass #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-
 module SchemaElm where
 
 import Servant.To.Elm
 import Language.Haskell.To.Elm
+import Data.Typeable 
+import Language.Elm.Name
 import qualified Data.Aeson as Aeson
 import qualified Data.Char as Char
-
 import qualified Schema
-import TypesElm
+import qualified Types
+import Database.Beam.Backend.SQL.Types
 
 removePrefix :: String -> Options
 removePrefix typeName =
@@ -23,42 +28,31 @@ removePrefix typeName =
         prefix = '_' : map Char.toLower typeName
         lowerFirst (x:xs) = Char.toLower x : xs
 
-fruitOptions :: Options
-fruitOptions = removePrefix "fruit"
+options :: forall a. ElmBoilerplate a => Proxy a -> Options
+options proxy = removePrefix $ map Char.toLower $ elmUppercaseName proxy
 
-instance HasElmType Schema.Fruit where
-    elmDefinition =
-        Just $ deriveElmTypeDefinition @Schema.Fruit fruitOptions "Generated.Fruit.Fruit"
+elmDefinition :: forall a. Proxy a -> String -> Maybe Definition
+elmDefinition proxy typeName = Just $ deriveElmTypeDefinition @a
+    (removePrefix $ map Char.toLower typeName)
+    (Qualified ["Generated", toText typeName] $ toText typeName
 
-instance HasElmDecoder Aeson.Value Schema.Fruit where
-    elmDecoderDefinition = Just $ deriveElmJSONDecoder @Schema.Fruit
-        fruitOptions
-        Aeson.defaultOptions
-        "Generated.Fruit.decoder"
+elmDecoderDefinition :: forall a. Proxy a -> String -> Maybe Definition
+elmDecoderDefinition proxy typeName = Just $ deriveElmTypeDefinition @a
+    (removePrefix $ map Char.toLower typeName)
+    (Qualified ["Generated", toText typeName] "decoder")
 
-instance HasElmEncoder Aeson.Value Schema.Fruit where
-    elmEncoderDefinition = Just $ deriveElmJSONEncoder @Schema.Fruit
-        fruitOptions
-        Aeson.defaultOptions
-        "Generated.Fruit.encoder"
+elmEncoderDefinition :: forall a. Proxy a -> String -> Maybe Definition
+elmEncoderDefinition proxy typeName = Just $ deriveElmTypeDefinition @a
+    (removePrefix $ map Char.toLower typeName)
+    (Qualified ["Generated", toText typeName] "encoder")
 
+-- this is based on the ToJSON and FromJSON definitions for `SqlSerial a` which basically
+-- just encode/decode it as `a`. what if it wrapped it? how would i know if this code works? scary stuff
+instance HasElmType a => HasElmType (SqlSerial a) where
+    elmType = elmType @a
 
-postOptions :: Options
-postOptions = removePrefix "post"
+instance HasElmDecoder Aeson.Value a => HasElmDecoder Aeson.Value (SqlSerial a) where
+    elmDecoder = elmDecoder @Aeson.Value @a
 
-instance HasElmType Schema.Post where
-    elmDefinition = Just $ deriveElmTypeDefinition @Schema.Post
-        postOptions
-        "Generated.Post.Post"
-
-instance HasElmDecoder Aeson.Value Schema.Post where
-    elmDecoderDefinition = Just $ deriveElmJSONDecoder @Schema.Post
-        postOptions
-        Aeson.defaultOptions
-        "Generated.Post.decoder"
-
-instance HasElmEncoder Aeson.Value Schema.Post where
-    elmEncoderDefinition = Just $ deriveElmJSONEncoder @Schema.Post
-        postOptions
-        Aeson.defaultOptions
-        "Generated.Post.encoder"
+instance HasElmEncoder Aeson.Value a => HasElmEncoder Aeson.Value (SqlSerial a) where
+    elmEncoder = elmEncoder @Aeson.Value @a
