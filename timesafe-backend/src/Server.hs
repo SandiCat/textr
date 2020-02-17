@@ -20,10 +20,9 @@ import           Capabilities
 server :: MonadPostgres m => ServerT API.API m
 server =
     (
-        (allRows (_dbFruit db) :<|> rowById (_dbFruit db) . FruitKey . SqlSerial) :<|>
         (allRows (_dbPost db) :<|> rowById (_dbPost db) . PostKey . SqlSerial)
     ) :<|>
-    ( return "hello world 12211" )
+    ( return "hello world 1221" )
 
 allRows
     :: ( MonadPostgres m

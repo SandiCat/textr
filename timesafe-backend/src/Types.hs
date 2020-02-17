@@ -50,3 +50,22 @@ instance HasDefaultSqlDataType Postgres Gender where
 instance FromBackendRow Postgres Gender where
     fromBackendRow =
         fromMaybe (error "invalid format") . readMaybe <$> fromBackendRow
+
+
+data Choice
+    = Accepted
+    | Declined
+    deriving (Show, Read, Eq, Generic, SOP.Generic, SOP.HasDatatypeInfo)
+
+instance Aeson.ToJSON Choice
+instance Aeson.FromJSON Choice
+
+instance HasSqlValueSyntax be String => HasSqlValueSyntax be Choice where
+    sqlValueSyntax = autoSqlValueSyntax
+
+instance HasDefaultSqlDataType Postgres Choice where
+    defaultSqlDataType _ _ _ = SQL.varCharType Nothing Nothing
+
+instance FromBackendRow Postgres Choice where
+    fromBackendRow =
+        fromMaybe (error "invalid format") . readMaybe <$> fromBackendRow
