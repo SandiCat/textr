@@ -1,7 +1,8 @@
 module Prelude
-       ( module Relude
-       , module Data.String.Interpolate.IsString
-       ) where
+  ( module Relude,
+    module Data.String.Interpolate.IsString,
+  )
+where
 
-import Relude hiding (id)
 import Data.String.Interpolate.IsString
+import Relude hiding (id)

@@ -51,7 +51,6 @@ instance FromBackendRow Postgres Gender where
     fromBackendRow =
         fromMaybe (error "invalid format") . readMaybe <$> fromBackendRow
 
-
 data Choice
     = Accepted
     | Declined

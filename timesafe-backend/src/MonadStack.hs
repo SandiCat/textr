@@ -1,13 +1,11 @@
 module MonadStack (hoistedServer) where
 
-
-import qualified Database.Beam.Postgres as Beam 
-import Database.PostgreSQL.Simple (Connection)
-import Control.Monad.Except (throwError)
-import qualified Servant.Server as Servant
-
-import qualified Server
 import qualified API
+import Control.Monad.Except (throwError)
+import qualified Database.Beam.Postgres as Beam
+import Database.PostgreSQL.Simple (Connection)
+import qualified Servant.Server as Servant
+import qualified Server
 
 type AppM a = ExceptT Servant.ServerError Beam.Pg a
 
@@ -16,11 +14,11 @@ type AppM a = ExceptT Servant.ServerError Beam.Pg a
 -- TODO: write in a simpler way with some kind of mapInner :: (m a -> m' b) -> t m a -> t m b
 appMToHandler :: Connection -> AppM a -> Servant.Handler a
 appMToHandler conn appM = do
-    res <- liftIO $ Beam.runBeamPostgres conn $ runExceptT appM
-    case res of
-        Left err -> throwError err
-        Right a -> return a
+  res <- liftIO $ Beam.runBeamPostgres conn $ runExceptT appM
+  case res of
+    Left err -> throwError err
+    Right a -> return a
 
 hoistedServer :: Connection -> Servant.Server API.API
 hoistedServer conn =
-    Servant.hoistServer API.apiProxy (appMToHandler conn) Server.server
+  Servant.hoistServer API.apiProxy (appMToHandler conn) Server.server
