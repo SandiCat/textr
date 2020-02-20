@@ -2,19 +2,17 @@
 
 module API where
 
+import qualified DerivedTypes
 import qualified Schema
 import Servant.API
 
-type REST =
-  ( "posts"
-      :> ( Get '[JSON] [Schema.Post]
-             :<|> Capture "id" Int :> Get '[JSON] (Maybe Schema.Post)
-         )
-  )
+-- | API that is used by the frontend application (in this case, by elm)
+type FrontendAPI =
+  "next_post" :> Get '[JSON] DerivedTypes.DisplayPost
 
 type API =
   "api"
-    :> ( REST
+    :> ( FrontendAPI
            :<|> ( "test" :> Get '[PlainText] Text
                 )
        )

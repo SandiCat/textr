@@ -1,78 +1,91 @@
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE TemplateHaskell #-}
--- defined in package.yaml, redefined here for floskell
 {-# LANGUAGE StandaloneDeriving #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
+
+-- defined in package.yaml, redefined here for floskell
 
 module Schema where
 
+import qualified Data.Aeson as Aeson
 import Database.Beam
 import Database.Beam.Backend.SQL.Types
-import qualified Data.Aeson as Aeson
 import qualified Generics.SOP as SOP
 import qualified Types
 
 db :: DatabaseSettings be DB
 db = defaultDbSettings
 
-data DB f =
-    DB
-    { _dbUser :: f (TableEntity UserT)
-    , _dbPost :: f (TableEntity PostT)
-    , _dbSwipe :: f (TableEntity SwipeT)
-    }
-    deriving (Generic,Database be)
+data DB f
+  = DB
+      { _dbUserAcc :: f (TableEntity UserAccT),
+        _dbPost :: f (TableEntity PostT),
+        _dbSwipe :: f (TableEntity SwipeT)
+      }
+  deriving (Generic, Database be)
 
-data UserT f =
-    User
-    { _userId :: C f (SqlSerial Int)
-    , _userAge :: C f Int
-    , _userGender :: C f Types.Gender
-    }
-    deriving (Generic,Beamable,SOP.Generic,SOP.HasDatatypeInfo)
+data UserAccT f -- user is a reserved word in postgres
+  = UserAcc
+      { _userId :: C f (SqlSerial Int),
+        _userAge :: C f Int,
+        _userGender :: C f Types.Gender
+      }
+  deriving (Generic, Beamable)
 
-data PostT f =
-    Post
-    { _postId :: C f (SqlSerial Int)
-    , _postAuthor :: PrimaryKey UserT f
-    , _postBody :: C f Text
-    , _postNickname :: C f Text
-    }
--- + max and min age, set of seeking genders, date posted, post edited, active 
-    deriving (Generic,Beamable,SOP.Generic,SOP.HasDatatypeInfo)
+data PostT f
+  = Post
+      { _postId :: C f (SqlSerial Int),
+        _postAuthor :: PrimaryKey UserAccT f,
+        _postBody :: C f Text,
+        _postNickname :: C f Text
+      }
+  -- + max and min age, set of seeking genders, date posted, post edited, active
+  deriving (Generic, Beamable)
 
-data SwipeT f =
-    Swipe
-    { _swipePost :: PrimaryKey PostT f
-    , _swipeWhoSwiped :: PrimaryKey UserT f
-    , _swipeChoice :: C f Types.Choice
-    }
-    deriving (Generic,Beamable,SOP.Generic,SOP.HasDatatypeInfo)
+data SwipeT f
+  = Swipe
+      { _swipePost :: PrimaryKey PostT f,
+        _swipeWhoSwiped :: PrimaryKey UserAccT f,
+        _swipeChoice :: C f Types.Choice
+      }
+  deriving (Generic, Beamable)
 
 -- BOILERPLATE
-type User = UserT Identity
+type UserAcc = UserAccT Identity
 
-deriving instance Show User
+deriving instance Show UserAcc
 
-deriving instance Eq User
+deriving instance Eq UserAcc
 
-instance Aeson.ToJSON User
+instance Aeson.FromJSON UserAcc
 
-instance Table UserT where
-    data PrimaryKey UserT f = UserKey (C f (SqlSerial Int))
-            deriving (Generic,Beamable)
+instance Aeson.ToJSON UserAcc
 
-    primaryKey = UserKey <$> _userId
+instance SOP.Generic UserAcc
 
-type UserID = PrimaryKey UserT Identity
+instance SOP.HasDatatypeInfo UserAcc
 
-deriving instance Show UserID
+instance Table UserAccT where
+  data PrimaryKey UserAccT f = UserAccKey (C f (SqlSerial Int))
+    deriving (Generic, Beamable)
 
-deriving instance Eq UserID
+  primaryKey = UserAccKey <$> _userId
 
-deriving instance Ord UserID
+type UserAccID = PrimaryKey UserAccT Identity
 
-instance Aeson.ToJSON UserID
+deriving instance Show UserAccID
+
+deriving instance Eq UserAccID
+
+deriving instance Ord UserAccID
+
+instance Aeson.FromJSON UserAccID
+
+instance Aeson.ToJSON UserAccID
+
+instance SOP.Generic UserAccID
+
+instance SOP.HasDatatypeInfo UserAccID
 
 type Post = PostT Identity
 
@@ -80,13 +93,19 @@ deriving instance Show Post
 
 deriving instance Eq Post
 
+instance Aeson.FromJSON Post
+
 instance Aeson.ToJSON Post
 
-instance Table PostT where
-    data PrimaryKey PostT f = PostKey (C f (SqlSerial Int))
-            deriving (Generic,Beamable)
+instance SOP.Generic Post
 
-    primaryKey = PostKey <$> _postId
+instance SOP.HasDatatypeInfo Post
+
+instance Table PostT where
+  data PrimaryKey PostT f = PostKey (C f (SqlSerial Int))
+    deriving (Generic, Beamable)
+
+  primaryKey = PostKey <$> _postId
 
 type PostID = PrimaryKey PostT Identity
 
@@ -96,7 +115,13 @@ deriving instance Eq PostID
 
 deriving instance Ord PostID
 
+instance Aeson.FromJSON PostID
+
 instance Aeson.ToJSON PostID
+
+instance SOP.Generic PostID
+
+instance SOP.HasDatatypeInfo PostID
 
 type Swipe = SwipeT Identity
 
@@ -104,14 +129,20 @@ deriving instance Show Swipe
 
 deriving instance Eq Swipe
 
+instance Aeson.FromJSON Swipe
+
 instance Aeson.ToJSON Swipe
 
-instance Table SwipeT where
-    data PrimaryKey SwipeT f =
-        SwipeKey (PrimaryKey PostT f) (PrimaryKey UserT f)
-            deriving (Generic,Beamable)
+instance SOP.Generic Swipe
 
-    primaryKey = SwipeKey <$> _swipePost <*> _swipeWhoSwiped
+instance SOP.HasDatatypeInfo Swipe
+
+instance Table SwipeT where
+  data PrimaryKey SwipeT f
+    = SwipeKey (PrimaryKey PostT f) (PrimaryKey UserAccT f)
+    deriving (Generic, Beamable)
+
+  primaryKey = SwipeKey <$> _swipePost <*> _swipeWhoSwiped
 
 type SwipeID = PrimaryKey SwipeT Identity
 
@@ -121,4 +152,10 @@ deriving instance Eq SwipeID
 
 deriving instance Ord SwipeID
 
+instance Aeson.FromJSON SwipeID
+
 instance Aeson.ToJSON SwipeID
+
+instance SOP.Generic SwipeID
+
+instance SOP.HasDatatypeInfo SwipeID

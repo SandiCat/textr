@@ -20,7 +20,7 @@ import Servant.Server
 
 server :: MonadPostgres m => ServerT API.API m
 server =
-  ( (allRows (_dbPost db) :<|> rowById (_dbPost db) . PostKey . SqlSerial)
+  ( return undefined
   )
     :<|> (return "hello world 1221")
 
