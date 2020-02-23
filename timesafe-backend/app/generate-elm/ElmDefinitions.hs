@@ -40,19 +40,19 @@ simpleElmDefinition typeName options =
       options
       (Qualified ["Generated", typeName] typeName)
 
-simpleElmDecoderDefinition :: forall a. _ => Text -> Maybe Definition
-simpleElmDecoderDefinition typeName =
+simpleElmDecoderDefinition :: forall a. _ => Text -> Options -> Maybe Definition
+simpleElmDecoderDefinition typeName options =
   Just $
     deriveElmJSONDecoder @a
-      defaultOptions
+      options
       Aeson.defaultOptions
       (Qualified ["Generated", typeName] "decoder")
 
-simpleElmEncoderDefinition :: forall a. _ => Text -> Maybe Definition
-simpleElmEncoderDefinition typeName =
+simpleElmEncoderDefinition :: forall a. _ => Text -> Options -> Maybe Definition
+simpleElmEncoderDefinition typeName options =
   Just $
     deriveElmJSONEncoder @a
-      defaultOptions
+      options
       Aeson.defaultOptions
       (Qualified ["Generated", typeName] "encoder")
 
@@ -73,34 +73,34 @@ instance HasElmType Types.Sex where
   elmDefinition = simpleElmDefinition @Types.Sex "Sex" defaultOptions
 
 instance HasElmDecoder Aeson.Value Types.Sex where
-  elmDecoderDefinition = simpleElmDecoderDefinition @Types.Sex "Sex"
+  elmDecoderDefinition = simpleElmDecoderDefinition @Types.Sex "Sex" defaultOptions
 
 instance HasElmEncoder Aeson.Value Types.Sex where
-  elmEncoderDefinition = simpleElmEncoderDefinition @Types.Sex "Sex"
+  elmEncoderDefinition = simpleElmEncoderDefinition @Types.Sex "Sex" defaultOptions
 
 instance HasElmType Types.Gender where
   elmDefinition = simpleElmDefinition @Types.Gender "Gender" defaultOptions
 
 instance HasElmDecoder Aeson.Value Types.Gender where
-  elmDecoderDefinition = simpleElmDecoderDefinition @Types.Gender "Gender"
+  elmDecoderDefinition = simpleElmDecoderDefinition @Types.Gender "Gender" defaultOptions
 
 instance HasElmEncoder Aeson.Value Types.Gender where
-  elmEncoderDefinition = simpleElmEncoderDefinition @Types.Gender "Gender"
+  elmEncoderDefinition = simpleElmEncoderDefinition @Types.Gender "Gender" defaultOptions
 
 instance HasElmType Schema.PostID where
   elmDefinition = simpleElmDefinition @Schema.PostID "PostID" defaultOptions
 
 instance HasElmDecoder Aeson.Value Schema.PostID where
-  elmDecoderDefinition = simpleElmDecoderDefinition @Schema.PostID "PostID"
+  elmDecoderDefinition = simpleElmDecoderDefinition @Schema.PostID "PostID" defaultOptions
 
 instance HasElmEncoder Aeson.Value Schema.PostID where
-  elmEncoderDefinition = simpleElmEncoderDefinition @Schema.PostID "PostID"
+  elmEncoderDefinition = simpleElmEncoderDefinition @Schema.PostID "PostID" defaultOptions
 
 instance HasElmType DerivedTypes.DisplayPost where
   elmDefinition = simpleElmDefinition @DerivedTypes.DisplayPost "Post" (removePrefix "_dp")
 
 instance HasElmDecoder Aeson.Value DerivedTypes.DisplayPost where
-  elmDecoderDefinition = simpleElmDecoderDefinition @DerivedTypes.DisplayPost "Post"
+  elmDecoderDefinition = simpleElmDecoderDefinition @DerivedTypes.DisplayPost "Post" (removePrefix "_dp")
 
 instance HasElmEncoder Aeson.Value DerivedTypes.DisplayPost where
-  elmEncoderDefinition = simpleElmEncoderDefinition @DerivedTypes.DisplayPost "Post"
+  elmEncoderDefinition = simpleElmEncoderDefinition @DerivedTypes.DisplayPost "Post" (removePrefix "_dp")
