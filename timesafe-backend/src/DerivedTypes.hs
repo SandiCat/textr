@@ -39,3 +39,11 @@ makeDisplayPost (post@Schema.Post {..}, Schema.UserAcc {..}) =
       _dpBody = _postBody,
       _dpNickname = _postNickname
     }
+
+-- | Represents the choice of a user about another user, whether they "swiped left or right"
+-- Sent from the frotend
+data SwipeDecision
+  = SwipeDecision
+      { _sdPostId :: Schema.PostID,
+        _sdChoice :: Types.Choice
+      }

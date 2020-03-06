@@ -8,7 +8,8 @@ import Servant.API
 
 -- | API that is used by the frontend application (in this case, by elm)
 type FrontendAPI =
-  "next_post" :> Get '[JSON] DerivedTypes.DisplayPost
+  "next_post" :> Get '[JSON] (Maybe DerivedTypes.DisplayPost)
+    :<|> "swipe" :> Post '[JSON] DerivedTypes.SwipeDecision
 
 type API =
   "api"

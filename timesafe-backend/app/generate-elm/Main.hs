@@ -25,6 +25,8 @@ main = do
           (elmEndpoints @API.FrontendAPI)
           <> jsonDefinitions @DerivedTypes.DisplayPost
           <> jsonDefinitions @Schema.PostID
+          <> jsonDefinitions @Types.Sex
+          <> jsonDefinitions @Types.Gender
       modules = Pretty.modules definitions
   forM_ (HashMap.toList modules) $ \(moduleName, contents) -> do
     let moduleRelDir = foldl1' (</>) $ map toString moduleName

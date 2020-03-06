@@ -6,10 +6,14 @@ import Browser.Events
 import Element exposing (Element)
 import Element.Events as Events
 import Generated.Api as Api
+import Generated.Gender as Gender
 import Generated.Post as Post exposing (Post)
+import Generated.Sex as Sex
 import Html.Attributes
 import Http
+import Ionicon
 import Task
+import Util
 
 
 main : Program () Model Msg
@@ -23,7 +27,7 @@ main =
 
 
 type alias Model =
-    { posts : List Post
+    { post : Maybe Post
     , windowSize :
         { height : Int
         , width : Int
@@ -33,14 +37,14 @@ type alias Model =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( { posts = []
+    ( { post = Nothing
       , windowSize =
             { height = 100
             , width = 100
             }
       }
     , Cmd.batch
-        [ Cmd.map (Result.toMaybe >> GotPosts) Api.getPosts
+        [ Cmd.map (Result.toMaybe >> Util.joinMaybe >> GotPost) Api.getNext_post
         , Task.perform
             (\vp ->
                 Resize
@@ -53,7 +57,7 @@ init _ =
 
 
 type Msg
-    = GotPosts (Maybe (List Post))
+    = GotPost (Maybe Post)
     | NextPost
     | Resize Int Int
 
@@ -61,16 +65,14 @@ type Msg
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        GotPosts maybePosts ->
-            ( { model | posts = Maybe.withDefault [] maybePosts }
+        GotPost maybePost ->
+            ( { model | post = maybePost }
             , Cmd.none
             )
 
         NextPost ->
-            ( { model
-                | posts = List.tail model.posts |> Maybe.withDefault []
-              }
-            , Cmd.none
+            ( { model | post = Nothing }
+            , Cmd.map (Result.toMaybe >> Util.joinMaybe >> GotPost) Api.getNext_post
             )
 
         Resize w h ->
@@ -94,18 +96,9 @@ view model =
                 , Element.explain Debug.todo
                 , Element.centerX
                 ]
-                [ Element.column
-                    -- MENU
-                    [ Element.alignLeft
-                    , Element.centerY
-                    ]
-                    [ Element.text "Browse"
-                    , Element.text "Create post"
-                    , Element.text "Settings"
-                    , Element.text "About."
-                    ]
-                , case model.posts of
-                    post :: _ ->
+                [ viewMenu
+                , case model.post of
+                    Just post ->
                         Element.el
                             [ Element.width Element.fill
                             , Element.fill
@@ -116,6 +109,7 @@ view model =
                                 [ Element.centerX
                                 , Element.height Element.fill
                                 , Element.width Element.fill
+
                                 -- this is required to get the scrollbar to work https://discourse.elm-lang.org/t/elm-ui-parent-element-grows-to-encompass-children-instead-of-scrolling/5032/5
                                 , Element.clip
                                 , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
@@ -124,17 +118,16 @@ view model =
                                 , Element.column
                                     -- VOTE
                                     [ Element.width <| Element.px 50
-                                    , Element.explain Debug.todo
                                     , Element.centerY
                                     , Events.onClick NextPost
                                     ]
-                                    [ Element.text "^"
-                                    , Element.text "v"
+                                    [ Util.defaultIcon Ionicon.arrowUpA
+                                    , Util.defaultIcon Ionicon.arrowDownA
                                     ]
                                 ]
                             )
 
-                    [] ->
+                    Nothing ->
                         Element.el
                             [ Element.width Element.fill
                             ]
@@ -147,6 +140,19 @@ view model =
     }
 
 
+viewMenu : Element msg
+viewMenu =
+    Element.column
+        [ Element.alignLeft
+        , Element.centerY
+        ]
+        [ Element.text "Browse"
+        , Element.text "Create post"
+        , Element.text "Settings"
+        , Element.text "About"
+        ]
+
+
 viewPost : Post -> Element msg
 viewPost post =
     Element.column
@@ -155,9 +161,6 @@ viewPost post =
         , Element.fill
             |> Element.maximum 600
             |> Element.width
-
-        -- , Element.height <| Element.px 400
-        -- , Element.height <| Element.px 400
         ]
         [ Element.el
             [ Element.height Element.fill
@@ -170,11 +173,38 @@ viewPost post =
         , Element.row
             [ Element.alignBottom
             , Element.height <| Element.px 75
+            , Element.width Element.fill
+            , Element.padding 5
             ]
             [ Element.text post.nickname
-            , Element.text "22M4R"
+            , Element.column [ Element.alignRight ]
+                [ Element.text <| String.fromInt <| post.age
+                , Element.text <| viewGender post.gender
+                ]
             ]
         ]
+
+
+viewGender : Gender.Gender -> String
+viewGender gender =
+    case gender of
+        Gender.Cis Sex.Male ->
+            "Male"
+
+        Gender.Cis Sex.Female ->
+            "Female"
+
+        Gender.TransTo Sex.Male ->
+            "FTM"
+
+        Gender.TransTo Sex.Female ->
+            "MTF"
+
+        Gender.Other (Just genderName) ->
+            genderName
+
+        Gender.Other Nothing ->
+            "N/A"
 
 
 subscriptions : Model -> Sub Msg

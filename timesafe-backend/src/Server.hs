@@ -14,15 +14,34 @@ import Database.Beam.Postgres
   )
 import Database.Beam.Schema.Tables (WithConstraint)
 import Database.PostgreSQL.Simple (Connection)
+import DerivedTypes
 import Schema
 import Servant.API
 import Servant.Server
 
 server :: MonadPostgres m => ServerT API.API m
 server =
-  ( return undefined
+  ( nextPost
   )
     :<|> (return "hello world 1221")
+
+nextPost :: forall m. (MonadPostgres m) => m (Maybe DisplayPost)
+nextPost =
+  fmap (fmap makeDisplayPost) $ runSelectReturningOne $ select
+    $ limit_ 1
+    $ do
+      post <- all_ $ _dbPost db
+      user <- all_ $ _dbUserAcc db
+      guard_ $ _postAuthor post `references_` user
+      return (post, user)
+
+swipe :: forall m. (MonadPostgres m) => SwipeDecision -> m ()
+swipe swipeDecision =
+  runInsert $ insert (_dbSwipe db) $ insertValues $ one $
+    Swipe
+      (_sdPostId swipeDecision)
+      undefined
+      (_sdChoice swipeDecision)
 
 allRows ::
   ( MonadPostgres m,
