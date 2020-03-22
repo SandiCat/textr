@@ -7,8 +7,10 @@ import Element exposing (Element)
 import Element.Events as Events
 import Generated.Api as Api
 import Generated.Gender as Gender
+import Generated.Login as Login exposing (Login)
 import Generated.Post as Post exposing (Post)
 import Generated.Sex as Sex
+import Generated.UserID as UserID exposing (UserID)
 import Html.Attributes
 import Http
 import Ionicon
@@ -32,7 +34,23 @@ type alias Model =
         { height : Int
         , width : Int
         }
+    , loginStatus : LoginStatus
     }
+
+
+type LoginStatus
+    = NotAsked
+    | Failure Http.Error
+    | Success
+
+
+loginResultToMsg result =
+    case result of
+        Err ( httpError, _ ) ->
+            LoginComplete <| Just httpError
+
+        Ok _ ->
+            LoginComplete Nothing
 
 
 init : () -> ( Model, Cmd Msg )
@@ -42,9 +60,13 @@ init _ =
             { height = 100
             , width = 100
             }
+      , loginStatus = NotAsked
       }
     , Cmd.batch
-        [ Cmd.map (Result.toMaybe >> Util.joinMaybe >> GotPost) Api.getNext_post
+        [ UserID.UserID 1
+            |> Login
+            |> Api.postLogin
+            |> Cmd.map loginResultToMsg
         , Task.perform
             (\vp ->
                 Resize
@@ -60,6 +82,7 @@ type Msg
     = GotPost (Maybe Post)
     | NextPost
     | Resize Int Int
+    | LoginComplete (Maybe Http.Error)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -80,6 +103,16 @@ update msg model =
             , Cmd.none
             )
 
+        LoginComplete (Just error) ->
+            ( { model | loginStatus = Failure error }
+            , Cmd.none
+            )
+
+        LoginComplete Nothing ->
+            ( { model | loginStatus = Success }
+            , Cmd.map (Result.toMaybe >> Util.joinMaybe >> GotPost) Api.getNext_post
+            )
+
 
 view : Model -> Browser.Document Msg
 view model =
@@ -96,7 +129,18 @@ view model =
                 , Element.explain Debug.todo
                 , Element.centerX
                 ]
-                [ viewMenu
+                [ Element.column []
+                    [ viewMenu
+                    , case model.loginStatus of
+                        Failure error ->
+                            Element.text <| Debug.toString error
+
+                        Success ->
+                            Element.text "logged in, somehow!"
+
+                        NotAsked ->
+                            Element.text "didnt ask yet"
+                    ]
                 , case model.post of
                     Just post ->
                         Element.el

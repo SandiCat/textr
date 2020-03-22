@@ -47,3 +47,26 @@ data SwipeDecision
       { _sdPostId :: Schema.PostID,
         _sdChoice :: Types.Choice
       }
+  deriving (Show, Generic)
+
+instance Aeson.FromJSON SwipeDecision
+
+instance Aeson.ToJSON SwipeDecision
+
+instance SOP.Generic SwipeDecision
+
+instance SOP.HasDatatypeInfo SwipeDecision
+
+data Login
+  = Login
+      { _lUserId :: Schema.UserAccID
+      }
+  deriving (Show, Generic)
+
+instance Aeson.FromJSON Login
+
+instance Aeson.ToJSON Login
+
+instance SOP.Generic Login
+
+instance SOP.HasDatatypeInfo Login

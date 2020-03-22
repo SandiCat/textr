@@ -19,6 +19,8 @@ import Language.Elm.Definition
 import Language.Elm.Name
 import Language.Haskell.To.Elm
 import qualified Schema
+import Servant.API
+import Servant.Auth.Server
 import Servant.To.Elm
 import qualified Types
 
@@ -67,6 +69,18 @@ instance HasElmDecoder Aeson.Value a => HasElmDecoder Aeson.Value (SqlSerial a) 
 instance HasElmEncoder Aeson.Value a => HasElmEncoder Aeson.Value (SqlSerial a) where
   elmEncoder = elmEncoder @Aeson.Value @a
 
+-- instance
+--   HasElmDecoder Aeson.Value a =>
+--   HasElmDecoder Aeson.Value
+--     ( Headers
+--         '[ Header "Set-Cookie" SetCookie,
+--            Header "Set-Cookie" SetCookie
+--          ]
+--         a
+--     )
+--   where
+--   elmDecoder = elmDecoder @Aeson.Value @a
+
 -- DEFINITIONS
 
 instance HasElmType Types.Sex where
@@ -104,3 +118,39 @@ instance HasElmDecoder Aeson.Value DerivedTypes.DisplayPost where
 
 instance HasElmEncoder Aeson.Value DerivedTypes.DisplayPost where
   elmEncoderDefinition = simpleElmEncoderDefinition @DerivedTypes.DisplayPost "Post" (removePrefix "_dp")
+
+instance HasElmType Types.Choice where
+  elmDefinition = simpleElmDefinition @Types.Choice "Choice" defaultOptions
+
+instance HasElmDecoder Aeson.Value Types.Choice where
+  elmDecoderDefinition = simpleElmDecoderDefinition @Types.Choice "Choice" defaultOptions
+
+instance HasElmEncoder Aeson.Value Types.Choice where
+  elmEncoderDefinition = simpleElmEncoderDefinition @Types.Choice "Choice" defaultOptions
+
+instance HasElmType Schema.UserAccID where
+  elmDefinition = simpleElmDefinition @Schema.UserAccID "UserID" defaultOptions
+
+instance HasElmDecoder Aeson.Value Schema.UserAccID where
+  elmDecoderDefinition = simpleElmDecoderDefinition @Schema.UserAccID "UserID" defaultOptions
+
+instance HasElmEncoder Aeson.Value Schema.UserAccID where
+  elmEncoderDefinition = simpleElmEncoderDefinition @Schema.UserAccID "UserID" defaultOptions
+
+instance HasElmType DerivedTypes.SwipeDecision where
+  elmDefinition = simpleElmDefinition @DerivedTypes.SwipeDecision "SwipeDecision" (removePrefix "_sd")
+
+instance HasElmDecoder Aeson.Value DerivedTypes.SwipeDecision where
+  elmDecoderDefinition = simpleElmDecoderDefinition @DerivedTypes.SwipeDecision "SwipeDecision" (removePrefix "_sd")
+
+instance HasElmEncoder Aeson.Value DerivedTypes.SwipeDecision where
+  elmEncoderDefinition = simpleElmEncoderDefinition @DerivedTypes.SwipeDecision "SwipeDecision" (removePrefix "_sd")
+
+instance HasElmType DerivedTypes.Login where
+  elmDefinition = simpleElmDefinition @DerivedTypes.Login "Login" (removePrefix "_l")
+
+instance HasElmDecoder Aeson.Value DerivedTypes.Login where
+  elmDecoderDefinition = simpleElmDecoderDefinition @DerivedTypes.Login "Login" (removePrefix "_l")
+
+instance HasElmEncoder Aeson.Value DerivedTypes.Login where
+  elmEncoderDefinition = simpleElmEncoderDefinition @DerivedTypes.Login "Login" (removePrefix "_l")

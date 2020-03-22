@@ -1,4 +1,5 @@
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Main where
 
@@ -10,12 +11,17 @@ import ElmDefinitions
 import qualified Language.Elm.Pretty as Pretty
 import Language.Haskell.To.Elm (jsonDefinitions)
 import qualified Schema
+import Servant.API
+import qualified Servant.Auth.Server as SAS
 import Servant.To.Elm
 import qualified System.Directory as Dir
 import System.FilePath ((<.>), (</>))
 import qualified Types
 
 frontendElmSrcDir = ".." </> "timesafe-frontend" </> "src" </> "elm"
+
+instance HasElmEndpoints restOfApi => HasElmEndpoints (SAS.Auth auths a :> restOfApi) where
+  elmEndpoints' = elmEndpoints' @restOfApi
 
 main :: IO ()
 main = do
@@ -24,9 +30,13 @@ main = do
           (elmEndpointDefinition "Config.urlBase" ["Generated", "Api"])
           (elmEndpoints @API.FrontendAPI)
           <> jsonDefinitions @DerivedTypes.DisplayPost
+          <> jsonDefinitions @DerivedTypes.Login
+          <> jsonDefinitions @DerivedTypes.SwipeDecision
           <> jsonDefinitions @Schema.PostID
+          <> jsonDefinitions @Schema.UserAccID
           <> jsonDefinitions @Types.Sex
           <> jsonDefinitions @Types.Gender
+          <> jsonDefinitions @Types.Choice
       modules = Pretty.modules definitions
   forM_ (HashMap.toList modules) $ \(moduleName, contents) -> do
     let moduleRelDir = foldl1' (</>) $ map toString moduleName

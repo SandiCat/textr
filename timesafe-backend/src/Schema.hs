@@ -66,10 +66,10 @@ instance SOP.Generic UserAcc
 instance SOP.HasDatatypeInfo UserAcc
 
 instance Table UserAccT where
-  data PrimaryKey UserAccT f = UserAccKey (C f (SqlSerial Int))
+  data PrimaryKey UserAccT f = UserID (C f (SqlSerial Int))
     deriving (Generic, Beamable)
 
-  primaryKey = UserAccKey <$> _userId
+  primaryKey = UserID <$> _userId
 
 type UserAccID = PrimaryKey UserAccT Identity
 
@@ -102,10 +102,10 @@ instance SOP.Generic Post
 instance SOP.HasDatatypeInfo Post
 
 instance Table PostT where
-  data PrimaryKey PostT f = PostKey (C f (SqlSerial Int))
+  data PrimaryKey PostT f = PostID (C f (SqlSerial Int))
     deriving (Generic, Beamable)
 
-  primaryKey = PostKey <$> _postId
+  primaryKey = PostID <$> _postId
 
 type PostID = PrimaryKey PostT Identity
 
@@ -139,10 +139,10 @@ instance SOP.HasDatatypeInfo Swipe
 
 instance Table SwipeT where
   data PrimaryKey SwipeT f
-    = SwipeKey (PrimaryKey PostT f) (PrimaryKey UserAccT f)
+    = SwipeID (PrimaryKey PostT f) (PrimaryKey UserAccT f)
     deriving (Generic, Beamable)
 
-  primaryKey = SwipeKey <$> _swipePost <*> _swipeWhoSwiped
+  primaryKey = SwipeID <$> _swipePost <*> _swipeWhoSwiped
 
 type SwipeID = PrimaryKey SwipeT Identity
 
