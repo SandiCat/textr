@@ -16,9 +16,14 @@ import qualified Servant.Auth.Server as SAS
 import Servant.To.Elm
 import qualified System.Directory as Dir
 import System.FilePath ((<.>), (</>))
+import qualified System.Process as Process
 import qualified Types
 
-frontendElmSrcDir = ".." </> "timesafe-frontend" </> "src" </> "elm"
+elmSrcDir = "src" </> "elm"
+
+frotendDir = ".." </> "timesafe-frontend"
+
+frontendElmSrcDir = frotendDir </> elmSrcDir
 
 instance HasElmEndpoints restOfApi => HasElmEndpoints (SAS.Auth auths a :> restOfApi) where
   elmEndpoints' = elmEndpoints' @restOfApi
@@ -41,3 +46,10 @@ main = do
   forM_ (HashMap.toList modules) $ \(moduleName, contents) -> do
     let moduleRelDir = foldl1' (</>) $ map toString moduleName
     writeFileText (frontendElmSrcDir </> moduleRelDir <.> "elm") (show contents)
+  (_, _, _, ph) <-
+    Process.createProcess $
+      (Process.proc "yarn" ["elm-format", "--yes", elmSrcDir </> "Generated"])
+        { Process.cwd = Just frotendDir
+        }
+  Process.waitForProcess ph
+  putStrLn "done"
