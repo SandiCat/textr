@@ -19,9 +19,7 @@ type FrontendAPI =
              :> ReqBody '[JSON] DerivedTypes.Login
              :> PostNoContent '[JSON]
                   ( Headers
-                      '[ Header "Set-Cookie" SetCookie,
-                         Header "Set-Cookie" SetCookie
-                       ]
+                      '[Header "Set-Cookie" SetCookie]
                       NoContent
                   )
          )

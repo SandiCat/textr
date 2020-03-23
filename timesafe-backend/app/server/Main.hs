@@ -48,7 +48,15 @@ develMain =
     Beam.runBeamPostgres conn $ createSchema migrationBackend Migration.migrationDb
     _ <- executeSqlFile conn $ "sql" </> "populate_db.sql"
     putStrLn "server running"
-    Warp.run 8080 $ Server.mkApp conn (defaultCookieSettings {cookieIsSecure = NotSecure}, defaultJWTSettings $ fromSecret secret)
+    Warp.run 8080 $
+      Server.mkApp
+        conn
+        ( defaultCookieSettings
+            { cookieIsSecure = NotSecure,
+              cookieXsrfSetting = Nothing
+            },
+          defaultJWTSettings $ fromSecret secret
+        )
 
 -- withConfigFile :: FilePath -> IO ()
 -- withConfigFile configPath = do

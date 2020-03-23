@@ -136,7 +136,7 @@ view model =
                             Element.text <| Debug.toString error
 
                         Success ->
-                            Element.text "logged in, somehow!"
+                            Element.text "logged in!"
 
                         NotAsked ->
                             Element.text "didnt ask yet"

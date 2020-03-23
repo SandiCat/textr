@@ -74,23 +74,17 @@ login ::
   (MonadError ServerError m, MonadIO m) =>
   AuthConfig ->
   DerivedTypes.Login ->
-  m
-    ( Headers
-        '[ Header "Set-Cookie" SetCookie,
-           Header "Set-Cookie" SetCookie
-         ]
-        NoContent
-    )
+  m (Headers '[Header "Set-Cookie" SetCookie] NoContent)
 login (cookieSettings, jwtSettings) loginInfo =
   let userId = _lUserId loginInfo
    in if userId == Schema.UserID 1
         then do
-          mApplyCookies <- liftIO $ acceptLogin cookieSettings jwtSettings userId
-          case mApplyCookies of
-            Nothing -> do
-              liftIO $ putStrLn "wrong login"
-              throwError err401
-            Just applyCookies -> pure $ applyCookies NoContent
+          mSessCookie <- liftIO $ makeSessionCookie cookieSettings jwtSettings userId
+          case mSessCookie of
+            Just sessCookie ->
+              return $ addHeader sessCookie NoContent
+            Nothing ->
+              throwError err500
         else throwError err401
 
 nextPost :: forall m. (MonadPostgres m) => UserAccID -> m (Maybe DisplayPost)
