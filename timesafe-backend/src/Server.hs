@@ -60,6 +60,13 @@ mkApp conn cfg@(cookieSettings, jwtSettings) =
     (cookieSettings :. jwtSettings :. EmptyContext)
     $ hoistedServer conn cfg
 
+startTemporaryConnection :: IO (Either PgTemp.StartError Pg.Connection)
+startTemporaryConnection = runExceptT $ do
+  db <- ExceptT PgTemp.start
+  conn <- liftIO $ Pg.connectPostgreSQL $ PgTemp.toConnectionString db
+  _ <- liftIO $ Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
+  return conn
+
 withTemporaryConnection :: (Pg.Connection -> IO ()) -> IO (Either PgTemp.StartError ())
 withTemporaryConnection f =
   PgTemp.with $ \db -> do
