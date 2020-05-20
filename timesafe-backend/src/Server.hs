@@ -1,9 +1,6 @@
 {-# LANGUAGE TypeApplications #-}
 
-module Server
-  ( mkApp,
-  )
-where
+module Server where
 
 import API
 import qualified API
@@ -13,15 +10,19 @@ import Control.Monad.Except (throwError)
 import Database.Beam
 import Database.Beam.Backend.SQL (BeamSqlBackend)
 import Database.Beam.Backend.SQL.BeamExtensions
+import qualified Database.Beam.Migrate.Simple as Beam
 import Database.Beam.Postgres
   ( Pg,
     Postgres,
   )
 import qualified Database.Beam.Postgres as Beam
+import Database.Beam.Postgres.Migrate (migrationBackend)
 import Database.Beam.Schema.Tables (WithConstraint)
 import Database.PostgreSQL.Simple (Connection)
-import Database.PostgreSQL.Simple (Connection)
+import qualified Database.PostgreSQL.Simple as Pg
+import qualified Database.Postgres.Temp as PgTemp
 import DerivedTypes
+import qualified Migration
 import Network.Wai (Application)
 import Schema
 import Servant
@@ -59,6 +60,14 @@ mkApp conn cfg@(cookieSettings, jwtSettings) =
     (cookieSettings :. jwtSettings :. EmptyContext)
     $ hoistedServer conn cfg
 
+withTemporaryConnection :: (Pg.Connection -> IO ()) -> IO (Either PgTemp.StartError ())
+withTemporaryConnection f =
+  PgTemp.with $ \db -> do
+    putBSLn $ PgTemp.toConnectionString db
+    conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
+    _ <- Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
+    f conn
+
 server :: AuthConfig -> ServerT API.API AppM
 server cfg =
   ( protected
@@ -92,9 +101,15 @@ nextPost userId =
   fmap (fmap makeDisplayPost) $ runSelectReturningOne $ select
     $ limit_ 1
     $ do
-      post <- all_ $ _dbPost db
       user <- all_ $ _dbUserAcc db
+      guard_ $ primaryKey user /=. val_ userId -- don't recommend one's own posts
+      post <- all_ $ _dbPost db
       guard_ $ _postAuthor post `references_` user
+      -- find all the swipes by the logged in user on one of `user`'s posts
+      swipe <- all_ $ _dbSwipe db
+      guard_ $ _swipeWhoSwiped swipe ==. val_ userId -- only swipes by logged in user
+      guard_ $ _postAuthor post `references_` user -- only on posts by this user
+      guard_ $ not_ $ _swipePost swipe `references_` post
       return (post, user)
 
 swipe :: forall m. (MonadPostgres m) => UserAccID -> SwipeDecision -> m NoContent
@@ -103,7 +118,7 @@ swipe userId swipeDecision =
     <$ ( runInsert $ insert (_dbSwipe db) $ insertValues $ one $
            Swipe
              (_sdPostId swipeDecision)
-             undefined
+             userId
              (_sdChoice swipeDecision)
        )
 

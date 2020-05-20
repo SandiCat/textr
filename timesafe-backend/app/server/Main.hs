@@ -43,9 +43,7 @@ executeSqlFile conn path = do
 
 develMain :: IO (Either PgTemp.StartError ())
 develMain =
-  PgTemp.with $ \db -> do
-    conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
-    Beam.runBeamPostgres conn $ createSchema migrationBackend Migration.migrationDb
+  Server.withTemporaryConnection $ \conn -> do
     _ <- executeSqlFile conn $ "sql" </> "populate_db.sql"
     putStrLn "server running"
     Warp.run 8080 $

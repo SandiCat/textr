@@ -143,6 +143,8 @@ tests:
     dependencies:
     - timesafe-backend
     - hspec
+    - hw-hspec-hedgehog
+    - hedgehog
 
     ghc-options:
     - -threaded
