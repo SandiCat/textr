@@ -15,7 +15,7 @@ import Database.Beam.Postgres (Postgres)
 data Sex
     = Male
     | Female
-    deriving (Show, Read, Enum, Eq, Generic, SOP.Generic, SOP.HasDatatypeInfo)
+    deriving (Show, Read, Enum, Bounded, Eq, Generic, SOP.Generic, SOP.HasDatatypeInfo)
 
 instance Aeson.ToJSON Sex
 instance Aeson.FromJSON Sex
@@ -54,7 +54,7 @@ instance FromBackendRow Postgres Gender where
 data Choice
     = Accepted
     | Declined
-    deriving (Show, Read, Eq, Generic, SOP.Generic, SOP.HasDatatypeInfo)
+    deriving (Show, Read, Enum, Bounded, Eq, Generic, SOP.Generic, SOP.HasDatatypeInfo)
 
 instance Aeson.ToJSON Choice
 instance Aeson.FromJSON Choice
