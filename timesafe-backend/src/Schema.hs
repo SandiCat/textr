@@ -3,8 +3,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 
--- defined in package.yaml, redefined here for floskell
-
 module Schema where
 
 import qualified Data.Aeson as Aeson

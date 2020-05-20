@@ -9,7 +9,7 @@ import Servant.API
 import Servant.Auth.Server
 
 type ProtectedAPI =
-  "next_post" :> Get '[JSON] (Maybe DerivedTypes.DisplayPost)
+  "next_post" :> Get '[JSON] (Maybe DerivedTypes.DisplayPost) -- TODO: post request
     :<|> "swipe" :> ReqBody '[JSON] DerivedTypes.SwipeDecision :> PostNoContent '[JSON] NoContent
 
 -- | API that is used by the frontend application (in this case, by elm)
