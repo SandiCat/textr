@@ -6,10 +6,12 @@ import Browser.Events
 import Element exposing (Element)
 import Element.Events as Events
 import Generated.Api as Api
+import Generated.Choice as Choice exposing (Choice)
 import Generated.Gender as Gender
 import Generated.Login as Login exposing (Login)
 import Generated.Post as Post exposing (Post)
 import Generated.Sex as Sex
+import Generated.SwipeDecision as SwipeDecision exposing (SwipeDecision)
 import Generated.UserID as UserID exposing (UserID)
 import Html.Attributes
 import Http
@@ -83,6 +85,8 @@ type Msg
     | NextPost
     | Resize Int Int
     | LoginComplete (Maybe Http.Error)
+    | Swipe Choice
+    | NoOp
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -112,6 +116,22 @@ update msg model =
             ( { model | loginStatus = Success }
             , Cmd.map (Result.toMaybe >> Util.joinMaybe >> GotPost) Api.getNext_post
             )
+
+        Swipe choice ->
+            ( model
+            , Cmd.batch
+                [ Cmd.map (Result.toMaybe >> Util.joinMaybe >> GotPost) Api.getNext_post
+                , case model.post of
+                    Just post ->
+                        Cmd.map (always NoOp) <| Api.postSwipe <| SwipeDecision post.postId choice
+
+                    Nothing ->
+                        Cmd.none
+                ]
+            )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 view : Model -> Browser.Document Msg
@@ -154,7 +174,8 @@ view model =
                                 , Element.height Element.fill
                                 , Element.width Element.fill
 
-                                -- this is required to get the scrollbar to work https://discourse.elm-lang.org/t/elm-ui-parent-element-grows-to-encompass-children-instead-of-scrolling/5032/5
+                                -- this is required to get the scrollbar to work
+                                -- https://discourse.elm-lang.org/t/elm-ui-parent-element-grows-to-encompass-children-instead-of-scrolling/5032/5
                                 , Element.clip
                                 , Element.htmlAttribute (Html.Attributes.style "flex-shrink" "1")
                                 ]
@@ -165,8 +186,10 @@ view model =
                                     , Element.centerY
                                     , Events.onClick NextPost
                                     ]
-                                    [ Util.defaultIcon Ionicon.arrowUpA
-                                    , Util.defaultIcon Ionicon.arrowDownA
+                                    [ Element.el [ Events.onClick <| Swipe Choice.Accepted ] <|
+                                        Util.defaultIcon Ionicon.arrowUpA
+                                    , Element.el [ Events.onClick <| Swipe Choice.Declined ] <|
+                                        Util.defaultIcon Ionicon.arrowDownA
                                     ]
                                 ]
                             )
