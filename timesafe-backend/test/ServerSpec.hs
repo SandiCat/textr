@@ -66,6 +66,8 @@ spec =
         posts <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> do
           author <- Gen.element users
           return $ Post (SqlSerial i) (primaryKey author) placeholder placeholder
+        liftIO $ runBeamPostgresDebug putStrLn conn $ runInsert $ insert (_dbUserAcc db) $ insertValues users
+        liftIO $ runBeamPostgresDebug putStrLn conn $ runInsert $ insert (_dbPost db) $ insertValues posts
         -- request a post, check conditions, swipe on it, repeat
         numSwipes <- forAll $ Gen.int $ Range.linear 0 200
         replicateM_ numSwipes $ do
