@@ -44,6 +44,8 @@ dependencies:
 - servant-auth
 - servant-auth-server
 - wai
+- lifted-base
+- monad-control
 
 ghc-options:
 - -Wall

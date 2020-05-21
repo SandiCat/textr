@@ -5,8 +5,9 @@ module Server where
 import API
 import qualified API
 import Capabilities
-import Control.Monad.Error
-import Control.Monad.Except (throwError)
+import qualified Control.Exception.Lifted
+import Control.Monad.Except (MonadError, liftEither, throwError)
+import Control.Monad.Trans.Control (MonadBaseControl)
 import Database.Beam
 import Database.Beam.Backend.SQL (BeamSqlBackend)
 import Database.Beam.Backend.SQL.BeamExtensions
@@ -60,20 +61,41 @@ mkApp conn cfg@(cookieSettings, jwtSettings) =
     (cookieSettings :. jwtSettings :. EmptyContext)
     $ hoistedServer conn cfg
 
-startTemporaryConnection :: IO (Either PgTemp.StartError Pg.Connection)
-startTemporaryConnection = runExceptT $ do
-  db <- ExceptT PgTemp.start
+withTempDb ::
+  forall m.
+  ( MonadBaseControl IO m,
+    MonadIO m
+  ) =>
+  (PgTemp.DB -> m ()) ->
+  m (Either PgTemp.StartError ())
+withTempDb f =
+  runExceptT $
+    Control.Exception.Lifted.bracket @(ExceptT PgTemp.StartError m)
+      (ExceptT $ liftIO @m PgTemp.start)
+      (liftIO . PgTemp.stop)
+      (lift . f)
+
+connectAndCreateSchema :: MonadIO m => PgTemp.DB -> m (Either PgTemp.StartError Pg.Connection)
+connectAndCreateSchema db = runExceptT $ do
   conn <- liftIO $ Pg.connectPostgreSQL $ PgTemp.toConnectionString db
   _ <- liftIO $ Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
   return conn
 
-withTemporaryConnection :: (Pg.Connection -> IO ()) -> IO (Either PgTemp.StartError ())
-withTemporaryConnection f =
-  PgTemp.with $ \db -> do
-    putBSLn $ PgTemp.toConnectionString db
-    conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
-    _ <- Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
-    f conn
+withTemporaryConnection ::
+  forall m.
+  ( MonadBaseControl IO m,
+    MonadIO m
+  ) =>
+  (Pg.Connection -> m ()) ->
+  m (Either PgTemp.StartError ())
+withTemporaryConnection withConn =
+  let withDb :: PgTemp.DB -> ExceptT PgTemp.StartError m ()
+      withDb db = do
+        conn <- ExceptT $ connectAndCreateSchema db
+        lift $ withConn conn
+   in runExceptT $ do
+        ret <- withTempDb withDb
+        liftEither ret
 
 server :: AuthConfig -> ServerT API.API AppM
 server cfg =
@@ -108,16 +130,16 @@ nextPost userId =
   fmap (fmap makeDisplayPost) $ runSelectReturningOne $ select
     $ limit_ 1
     $ do
-      user <- all_ $ _dbUserAcc db
-      guard_ $ primaryKey user /=. val_ userId -- don't recommend one's own posts
+      author <- all_ $ _dbUserAcc db
+      guard_ $ primaryKey author /=. val_ userId -- don't recommend one's own posts
       post <- all_ $ _dbPost db
-      guard_ $ _postAuthor post `references_` user
-      -- find all the swipes by the logged in user on one of `user`'s posts
+      guard_ $ _postAuthor post `references_` author -- only on posts by this author
+
+      -- find all the swipes by the logged in user on one of `author`'s posts
       swipe <- all_ $ _dbSwipe db
       guard_ $ _swipeWhoSwiped swipe ==. val_ userId -- only swipes by logged in user
-      guard_ $ _postAuthor post `references_` user -- only on posts by this user
       guard_ $ not_ $ _swipePost swipe `references_` post
-      return (post, user)
+      return (post, author)
 
 swipe :: forall m. (MonadPostgres m) => UserAccID -> SwipeDecision -> m NoContent
 swipe userId swipeDecision =
