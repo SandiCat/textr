@@ -85,8 +85,23 @@ spec =
         case maybePost of
           Nothing -> do
             label "got nothing"
-            -- TODO: check if there were any posts to choose from
-            discard
+            for_ posts $ \post -> do
+              swipesByMe <-
+                liftIO $ runBeamPostgres conn
+                  $ runSelectReturningList
+                  $ select
+                  $ filter_
+                    ( \swipe ->
+                        _swipePost swipe `references_` val_ post
+                          &&. _swipeWhoSwiped swipe `references_` val_ user
+                    )
+                  $ all_
+                  $ _dbSwipe db
+              assert $
+                and
+                  [ _postAuthor post /= primaryKey user, -- not made by me
+                    null swipesByMe -- i never swipped on it
+                  ]
           Just displayPost -> do
             label "got a post"
             -- find the author and the post of the DisplayPost
