@@ -46,6 +46,7 @@ dependencies:
 - wai
 - lifted-base
 - monad-control
+- postgres-options
 
 ghc-options:
 - -Wall
@@ -146,7 +147,7 @@ tests:
     - timesafe-backend
     - hspec
     - hw-hspec-hedgehog
-    - hedgehog
+    - hedgehog >= 1.0.2
 
     ghc-options:
     - -threaded

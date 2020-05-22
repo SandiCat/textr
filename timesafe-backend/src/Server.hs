@@ -21,6 +21,7 @@ import Database.Beam.Postgres.Migrate (migrationBackend)
 import Database.Beam.Schema.Tables (WithConstraint)
 import Database.PostgreSQL.Simple (Connection)
 import qualified Database.PostgreSQL.Simple as Pg
+import qualified Database.PostgreSQL.Simple.Options as PgOpts
 import qualified Database.Postgres.Temp as PgTemp
 import DerivedTypes
 import qualified Migration
@@ -62,18 +63,28 @@ mkApp conn cfg@(cookieSettings, jwtSettings) =
     $ hoistedServer conn cfg
 
 withTempDb ::
-  forall m.
+  forall m a.
   ( MonadBaseControl IO m,
     MonadIO m
   ) =>
-  (PgTemp.DB -> m ()) ->
-  m (Either PgTemp.StartError ())
+  (PgTemp.DB -> m a) ->
+  m (Either PgTemp.StartError a)
 withTempDb f =
   runExceptT $
     Control.Exception.Lifted.bracket @(ExceptT PgTemp.StartError m)
-      (ExceptT $ liftIO @m PgTemp.start)
+      (ExceptT $ liftIO @m $ PgTemp.startConfig config)
       (liftIO . PgTemp.stop)
       (lift . f)
+  where
+    config =
+      mempty
+        { PgTemp.connectionOptions =
+            mempty
+              { -- PgOpts.user = Last $ Just "postgres",
+                -- user is the same as linux user 🤔
+                PgOpts.password = Last $ Just "password"
+              }
+        }
 
 connectAndCreateSchema :: MonadIO m => PgTemp.DB -> m (Either PgTemp.StartError Pg.Connection)
 connectAndCreateSchema db = runExceptT $ do
@@ -82,12 +93,12 @@ connectAndCreateSchema db = runExceptT $ do
   return conn
 
 withTemporaryConnection ::
-  forall m.
+  forall m a.
   ( MonadBaseControl IO m,
     MonadIO m
   ) =>
-  (Pg.Connection -> m ()) ->
-  m (Either PgTemp.StartError ())
+  (Pg.Connection -> m a) ->
+  m (Either PgTemp.StartError a)
 withTemporaryConnection withConn =
   let withDb :: PgTemp.DB -> ExceptT PgTemp.StartError m ()
       withDb db = do
