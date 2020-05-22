@@ -100,7 +100,7 @@ withTemporaryConnection ::
   (Pg.Connection -> m a) ->
   m (Either PgTemp.StartError a)
 withTemporaryConnection withConn =
-  let withDb :: PgTemp.DB -> ExceptT PgTemp.StartError m ()
+  let withDb :: PgTemp.DB -> ExceptT PgTemp.StartError m a
       withDb db = do
         conn <- ExceptT $ connectAndCreateSchema db
         lift $ withConn conn
