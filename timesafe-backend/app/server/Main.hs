@@ -68,4 +68,4 @@ develMain =
 --   [configPath] <- getArgs
 --   withConfigFile configPath
 
-main = undefined
+main = develMain
