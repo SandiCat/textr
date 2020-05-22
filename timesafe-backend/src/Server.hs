@@ -6,6 +6,7 @@ import API
 import qualified API
 import Capabilities
 import qualified Control.Exception.Lifted
+import qualified Control.Exception.Lifted as Except
 import Control.Monad.Except (MonadError, liftEither, throwError)
 import Control.Monad.Trans.Control (MonadBaseControl)
 import Database.Beam
@@ -88,6 +89,8 @@ withTempDb f =
 
 connectAndCreateSchema :: MonadIO m => PgTemp.DB -> m (Either PgTemp.StartError Pg.Connection)
 connectAndCreateSchema db = runExceptT $ do
+  putBSLn $ PgTemp.toConnectionString db
+  -- print $ PgTemp.toConnectionOptions db
   conn <- liftIO $ Pg.connectPostgreSQL $ PgTemp.toConnectionString db
   _ <- liftIO $ Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
   return conn
@@ -103,10 +106,31 @@ withTemporaryConnection withConn =
   let withDb :: PgTemp.DB -> ExceptT PgTemp.StartError m a
       withDb db = do
         conn <- ExceptT $ connectAndCreateSchema db
+        -- Except.handle @_ @Pg.SqlError
+        --   ( \e -> do
+        --       putStrLn "error caught"
+        --       print e
+        --       let x = x
+        --       return undefined
+        --   )
+        --   (lift $ withConn conn)
         lift $ withConn conn
    in runExceptT $ do
         ret <- withTempDb withDb
         liftEither ret
+
+withinUncommitedTransaction ::
+  forall m a.
+  ( MonadBaseControl IO m,
+    MonadIO m
+  ) =>
+  (Pg.Connection -> m a) ->
+  (Pg.Connection -> m a)
+withinUncommitedTransaction action conn =
+  Control.Exception.Lifted.bracket_
+    (liftIO $ Pg.begin conn)
+    (liftIO $ Pg.rollback conn)
+    (action conn)
 
 server :: AuthConfig -> ServerT API.API AppM
 server cfg =

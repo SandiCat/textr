@@ -1,10 +1,13 @@
 module ServerSpec where
 
 import Capabilities
+import qualified Control.Exception.Lifted as Except
+import Control.Monad.Trans.Control (MonadBaseControl)
 import Database.Beam
 import Database.Beam.Backend.SQL.Types (SqlSerial (..))
-import Control.Monad.Trans.Control ()
 import Database.Beam.Postgres
+import qualified Database.PostgreSQL.Simple as Pg
+import qualified Database.Postgres.Temp as PgTemp
 import DerivedTypes
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
@@ -14,24 +17,6 @@ import Schema
 import Server
 import Test.Hspec
 import Types
-
-postKey :: Int -> PostID
-postKey = PostID . SqlSerial
-
-userKey :: Int -> UserAccID
-userKey = UserID . SqlSerial
-
-insertSwipes :: Connection -> [Swipe] -> Expectation
-insertSwipes conn swipes =
-  (() <$) . runBeamPostgresDebug putStrLn conn
-    $ runInsert
-    $ insert (_dbSwipe db)
-    $ insertValues swipes
-
-nextPostShouldBe :: Connection -> UserAccID -> PostID -> Expectation
-nextPostShouldBe conn userId postId = do
-  res <- runBeamPostgres conn $ nextPost userId
-  _dpPostId <$> res `shouldBe` Just postId
 
 placeholder :: Text
 placeholder = "this shouldn't matter"
@@ -66,19 +51,83 @@ eitherToProperty = flip (>>=) $ \case
 
 spec :: Spec
 spec =
-  describe "nextPost"
+  around ((() <$) . Server.withTemporaryConnection) $ describe "nextPost"
     $ it "returns a post that satisfies a number of conditions"
-    $ require
-    $ property
-    $ eitherToProperty $ Server.withTemporaryConnection $ \conn -> do
+    $ \conn ->
+      require $ prop_nextPost undefined conn
+
+debugSqlException2 = do
+  logRef <- newIORef []
+  Right db <- PgTemp.start
+  Right conn <- Server.connectAndCreateSchema db
+  check $ prop_nextPost logRef conn
+  l <- readIORef logRef
+  let Just h = viaNonEmpty head l
+  PgTemp.stop db
+  return @IO $ h
+
+testHowPropsWork =
+  let checkIfZero 0 = 0
+      checkIfZero _ = error "counter not zero"
+      withCounter :: (MonadIO m, MonadBaseControl IO m) => IORef Int -> m a -> m a
+      withCounter var =
+        Except.bracket_
+          (atomicModifyIORef' var (checkIfZero >>> (+ 1) >>> (,())))
+          (atomicModifyIORef' var ((subtract 1) >>> (,())))
+      prop var =
+        property $ withCounter var $ do
+          counter <- readIORef var
+          assert $ counter == 0
+          i <- forAll $ Gen.int $ Range.linear 0 100000
+          cover 30 "even" $ i `mod` 2 == 0
+   in do
+        var <- newIORef @IO (0 :: Int)
+        check $ prop var
+        finalCount <- readIORef var
+        print finalCount
+
+testHowPropsWork2 =
+  Server.withTemporaryConnection @IO $ \conn ->
+    check $ withTests 1000 $ property $ do
+      liftIO $ Pg.begin conn
+      prevUsers <- liftIO $ runBeamPostgres conn $ runSelectReturningList $ select $ all_ $ _dbUserAcc db
+      assert $ null prevUsers
+      users <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> genUser (SqlSerial i)
+      liftIO $ runBeamPostgres conn $ runInsert $ insert (_dbUserAcc db) $ insertValues users
+      liftIO $ Pg.rollback conn
+
+prop_nextPost :: IORef _ -> Connection -> Property
+prop_nextPost logVar conn =
+  -- prop_nextPost :: Connection -> Property
+  -- prop_nextPost conn =
+  property $
+    do
+      liftIO $ Pg.begin conn
+      prevUsers <- liftIO $ runBeamPostgres conn $ runSelectReturningList $ select $ all_ $ _dbUserAcc db
+      assert $ null prevUsers
       users <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> genUser (SqlSerial i)
       posts <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> do
         author <- Gen.element users
         return $ Post (SqlSerial i) (primaryKey author) placeholder placeholder
-      liftIO $ runBeamPostgresDebug putStrLn conn $ runInsert $ insert (_dbUserAcc db) $ insertValues users
-      liftIO $ runBeamPostgresDebug putStrLn conn $ runInsert $ insert (_dbPost db) $ insertValues posts
+      -- Except.handle @_ @SqlError
+      --   ( \e -> do
+      --       putStrLn "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+      --       print e
+      --       print users
+      --       let loop x = loop x
+      --       -- loop undefined
+      --       return undefined
+      --   )
+      identity
+        ( do
+            -- prevUs <- liftIO $ runBeamPostgres conn $ runSelectReturningList $ select $ all_ $ _dbUserAcc db
+            -- prevPosts <- liftIO $ runBeamPostgres conn $ runSelectReturningList $ select $ all_ $ _dbPost db
+            -- atomicModifyIORef' logVar (\log -> ((prevUs, prevPosts, users, posts) : log, ()))
+            liftIO $ runBeamPostgres conn $ runInsert $ insert (_dbUserAcc db) $ insertValues users
+            liftIO $ runBeamPostgres conn $ runInsert $ insert (_dbPost db) $ insertValues posts
+        )
       -- request a post, check conditions, swipe on it, repeat
-      numSwipes <- forAll $ Gen.int $ Range.linear 0 200
+      numSwipes <- forAll $ Gen.int $ Range.linear 0 $ length posts `div` 10
       replicateM_ numSwipes $ do
         user <- forAll $ Gen.element users
         maybePost <- liftIO $ runBeamPostgres conn $ nextPost $ primaryKey user
@@ -125,3 +174,4 @@ spec =
             ($> ()) . liftIO . runBeamPostgres conn
               $ swipe (primaryKey user)
               $ SwipeDecision (primaryKey post) choice
+      liftIO $ Pg.rollback conn
