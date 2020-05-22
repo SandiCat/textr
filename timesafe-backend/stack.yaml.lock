@@ -81,6 +81,13 @@ packages:
       sha256: a9fb2bafbaca65c548916e9276ad129302e0b82b7cc9a5c74d3b359a7a77d598
   original:
     hackage: postgres-options-0.2.0.0@sha256:5e2d6408ed3943f9a056b58106186397b9aa1424c56f1f26668305ce8ea2838f,1604
+- completed:
+    hackage: hedgehog-1.0.2@sha256:55b4b61b033ba24981aba08037600e350257797f8de5ac3982a84b645ca62f79,4582
+    pantry-tree:
+      size: 2549
+      sha256: 94eca423ddede0e356df80b60ec226ee9ad3cb94d3a67ba2a0ec5c44b92c8c28
+  original:
+    hackage: hedgehog-1.0.2@sha256:55b4b61b033ba24981aba08037600e350257797f8de5ac3982a84b645ca62f79,4582
 snapshots:
 - completed:
     size: 524799
