@@ -150,6 +150,17 @@ nextPost userId =
       swipe <- all_ $ _dbSwipe db
       guard_ $ _swipeWhoSwiped swipe ==. val_ userId -- only swipes by logged in user
       guard_ $ not_ $ _swipePost swipe `references_` post
+      -- numSwipes <- aggregate_ (\_ -> countAll_) $ do
+      --   swipe <- all_ $ _dbSwipe db
+      --   -- guard_ $ _swipeWhoSwiped swipe ==. val_ userId -- only swipes by logged in user
+      --   guard_ $ _swipePost swipe `references_` post
+      --   return swipe
+      -- guard_ $ numSwipes ==. 0
+      -- numSwipes <- aggregate_ (\_ -> countAll_) $ do
+      --   swipe <- all_ $ _dbSwipe db
+      --   guard_ $ _swipeChoice swipe ==. val_ Accepted
+      --   return swipe
+      -- guard_ $ numSwipes ==. 0
       return (post, author)
 
 swipe :: forall m. (MonadPostgres m) => UserAccID -> SwipeDecision -> m NoContent
