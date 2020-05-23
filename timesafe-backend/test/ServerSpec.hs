@@ -147,9 +147,9 @@ prop_nextPost logVar conn =
                   $ all_
                   $ _dbSwipe db
               assert $
-                and
-                  [ _postAuthor post /= primaryKey user, -- not made by me
-                    null swipesByMe -- i never swipped on it
+                  or -- every post is either
+                    [ _postAuthor post == primaryKey user, -- made by me
+                      not $ null swipesByMe -- already seen
                   ]
           Just displayPost -> do
             label "got a post"
