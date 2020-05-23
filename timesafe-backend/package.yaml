@@ -47,6 +47,7 @@ dependencies:
 - lifted-base
 - monad-control
 - postgres-options
+- resource-pool
 
 ghc-options:
 - -Wall

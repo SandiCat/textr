@@ -41,20 +41,20 @@ executeSqlFile conn path = do
   queryText <- readFile path
   Pg.execute_ conn $ fromString queryText
 
-develMain :: IO (Either PgTemp.StartError ())
-develMain =
-  Server.withTemporaryConnection $ \conn -> do
-    _ <- executeSqlFile conn $ "sql" </> "populate_db.sql"
-    putStrLn "server running"
-    Warp.run 8080 $
-      Server.mkApp
-        conn
-        ( defaultCookieSettings
-            { cookieIsSecure = NotSecure,
-              cookieXsrfSetting = Nothing
-            },
-          defaultJWTSettings $ fromSecret secret
-        )
+-- develMain :: IO (Either PgTemp.StartError ())
+-- develMain =
+--   Server.withTemporaryConnection $ \conn -> do
+--     _ <- executeSqlFile conn $ "sql" </> "populate_db.sql"
+--     putStrLn "server running"
+--     Warp.run 8080 $
+--       Server.mkApp
+--         conn
+--         ( defaultCookieSettings
+--             { cookieIsSecure = NotSecure,
+--               cookieXsrfSetting = Nothing
+--             },
+--           defaultJWTSettings $ fromSecret secret
+--         )
 
 -- withConfigFile :: FilePath -> IO ()
 -- withConfigFile configPath = do
@@ -68,4 +68,5 @@ develMain =
 --   [configPath] <- getArgs
 --   withConfigFile configPath
 
-main = develMain
+--main = develMain
+main = undefined

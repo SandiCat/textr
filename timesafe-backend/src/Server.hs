@@ -9,6 +9,7 @@ import qualified Control.Exception.Lifted
 import qualified Control.Exception.Lifted as Except
 import Control.Monad.Except (MonadError, liftEither, throwError)
 import Control.Monad.Trans.Control (MonadBaseControl)
+import qualified Data.Pool as Pool
 import Database.Beam
 import Database.Beam.Backend.SQL (BeamSqlBackend)
 import Database.Beam.Backend.SQL.BeamExtensions
@@ -87,44 +88,52 @@ withTempDb f =
               }
         }
 
-connectAndCreateSchema :: MonadIO m => PgTemp.DB -> m (Either PgTemp.StartError Pg.Connection)
-connectAndCreateSchema db = runExceptT $ do
-  putBSLn $ PgTemp.toConnectionString db
-  -- print $ PgTemp.toConnectionOptions db
-  conn <- liftIO $ Pg.connectPostgreSQL $ PgTemp.toConnectionString db
-  _ <- liftIO $ Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
-  return conn
+createSchema :: MonadIO m => Pg.Connection -> m ()
+createSchema conn =
+  liftIO $ Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
 
-withTemporaryConnection ::
-  forall m a.
-  ( MonadBaseControl IO m,
-    MonadIO m
-  ) =>
-  (Pg.Connection -> m a) ->
-  m (Either PgTemp.StartError a)
-withTemporaryConnection withConn =
-  let withDb :: PgTemp.DB -> ExceptT PgTemp.StartError m a
+-- connectAndCreateSchema :: MonadIO m => PgTemp.DB -> m (Either PgTemp.StartError Pg.Connection)
+-- connectAndCreateSchema db = runExceptT $ do
+--   putBSLn $ PgTemp.toConnectionString db
+--   -- print $ PgTemp.toConnectionOptions db
+--   conn <-
+--   _ <- liftIO $ Beam.runBeamPostgres conn $ Beam.createSchema migrationBackend Migration.migrationDb
+--   return conn
+
+withPool ::
+  forall a.
+  (Pool.Pool Pg.Connection -> IO a) ->
+  IO (Either PgTemp.StartError a)
+withPool withPool =
+  let withDb :: PgTemp.DB -> IO a
       withDb db = do
-        conn <- ExceptT $ connectAndCreateSchema db
-        ret <- lift $ withConn conn
-        liftIO $ Pg.close conn
-        return ret
-   in runExceptT $ do
-        ret <- withTempDb withDb
-        liftEither ret
+        pool <-
+          Pool.createPool
+            -- TODO: is there a way to catch these errors?
+            ( do
+                conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
+                createSchema conn
+                return conn
+            )
+            Pg.close
+            2
+            60
+            10
+        withPool pool
+   in withTempDb withDb
 
-withinUncommitedTransaction ::
+withinUncommittedTransaction ::
   forall m a.
   ( MonadBaseControl IO m,
     MonadIO m
   ) =>
   (Pg.Connection -> m a) ->
   (Pg.Connection -> m a)
-withinUncommitedTransaction action conn =
+withinUncommittedTransaction f conn =
   Control.Exception.Lifted.bracket_
     (liftIO $ Pg.begin conn)
     (liftIO $ Pg.rollback conn)
-    (action conn)
+    (f conn)
 
 server :: AuthConfig -> ServerT API.API AppM
 server cfg =
