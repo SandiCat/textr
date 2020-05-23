@@ -106,15 +106,9 @@ withTemporaryConnection withConn =
   let withDb :: PgTemp.DB -> ExceptT PgTemp.StartError m a
       withDb db = do
         conn <- ExceptT $ connectAndCreateSchema db
-        -- Except.handle @_ @Pg.SqlError
-        --   ( \e -> do
-        --       putStrLn "error caught"
-        --       print e
-        --       let x = x
-        --       return undefined
-        --   )
-        --   (lift $ withConn conn)
-        lift $ withConn conn
+        ret <- lift $ withConn conn
+        liftIO $ Pg.close conn
+        return ret
    in runExceptT $ do
         ret <- withTempDb withDb
         liftEither ret
