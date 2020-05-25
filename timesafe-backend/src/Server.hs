@@ -165,8 +165,19 @@ login (cookieSettings, jwtSettings) loginInfo =
 
 nextPost :: forall m. (MonadPostgres m) => UserAccID -> m (Maybe DisplayPost)
 nextPost userId =
-  fmap (fmap makeDisplayPost) $ runSelectReturningOne $ select
+  fmap (fmap makeDisplayPost)
+    $ runSelectReturningOne
+    $ select
     $ limit_ 1
+    $ fmap (\(post, author, _) -> (post, author))
+    $ filter_ (\(post, author, swipeCount) -> swipeCount ==. 1)
+    $ aggregate_
+      ( \(post, author, _) ->
+          ( group_ post,
+            group_ author,
+            countAll_
+          )
+      )
     $ do
       author <- all_ $ _dbUserAcc db
       guard_ $ primaryKey author /=. val_ userId -- don't recommend one's own posts
@@ -174,21 +185,14 @@ nextPost userId =
       guard_ $ _postAuthor post `references_` author -- only on posts by this author
 
       -- find all the swipes by the logged in user on one of `author`'s posts
-      swipe <- all_ $ _dbSwipe db
-      guard_ $ _swipeWhoSwiped swipe ==. val_ userId -- only swipes by logged in user
-      guard_ $ not_ $ _swipePost swipe `references_` post
-      -- numSwipes <- aggregate_ (\_ -> countAll_) $ do
-      --   swipe <- all_ $ _dbSwipe db
-      --   -- guard_ $ _swipeWhoSwiped swipe ==. val_ userId -- only swipes by logged in user
-      --   guard_ $ _swipePost swipe `references_` post
-      --   return swipe
-      -- guard_ $ numSwipes ==. 0
-      -- numSwipes <- aggregate_ (\_ -> countAll_) $ do
-      --   swipe <- all_ $ _dbSwipe db
-      --   guard_ $ _swipeChoice swipe ==. val_ Accepted
-      --   return swipe
-      -- guard_ $ numSwipes ==. 0
-      return (post, author)
+      swipe <-
+        leftJoin_
+          (all_ $ _dbSwipe db)
+          ( \swipe ->
+              _swipePost swipe `references_` post -- swipes on this post
+                &&. _swipeWhoSwiped swipe ==. val_ userId -- only swipes by logged in user
+          )
+      return (post, author, swipe)
 
 swipe :: forall m. (MonadPostgres m) => UserAccID -> SwipeDecision -> m NoContent
 swipe userId swipeDecision =
