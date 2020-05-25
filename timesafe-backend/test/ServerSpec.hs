@@ -2,6 +2,7 @@ module ServerSpec where
 
 import Capabilities
 import qualified Control.Exception.Lifted as Except
+import qualified Control.Monad.Error as Error
 import Control.Monad.Trans.Control (MonadBaseControl)
 import qualified Data.Pool as Pool
 import Database.Beam
@@ -13,6 +14,7 @@ import DerivedTypes
 import HaskellWorks.Hspec.Hedgehog
 import Hedgehog
 import qualified Hedgehog.Gen as Gen
+import qualified Hedgehog.Internal.Property as Property
 import qualified Hedgehog.Range as Range
 import Schema
 import Server
@@ -67,25 +69,30 @@ spec =
 --   PgTemp.stop db
 --   return @IO $ h
 
--- testHowPropsWork =
---   let checkIfZero 0 = 0
---       checkIfZero _ = error "counter not zero"
---       withCounter :: (MonadIO m, MonadBaseControl IO m) => IORef Int -> m a -> m a
---       withCounter var =
---         Except.bracket_
---           (atomicModifyIORef' var (checkIfZero >>> (+ 1) >>> (,())))
---           (atomicModifyIORef' var ((subtract 1) >>> (,())))
---       prop var =
---         property $ withCounter var $ do
---           counter <- readIORef var
---           assert $ counter == 0
---           i <- forAll $ Gen.int $ Range.linear 0 100000
---           cover 30 "even" $ i `mod` 2 == 0
---    in do
---         var <- newIORef @IO (0 :: Int)
---         check $ prop var
---         finalCount <- readIORef var
---         print finalCount
+testHowPropsWork =
+  let checkIfZero 0 = 0
+      checkIfZero _ = error "counter not zero"
+      withCounter :: (MonadIO m, MonadBaseControl IO m) => IORef Int -> m a -> m a
+      withCounter var =
+        Except.bracket_
+          (atomicModifyIORef' var ((+ 1) >>> (,())))
+          (atomicModifyIORef' var (subtract 1 >>> (,())))
+      prop var =
+        property $ withCounter var $ flip onFailure (atomicModifyIORef' var (subtract 1 >>> (,()))) $ do
+          i <- forAll $ Gen.int $ Range.linear 0 100
+          counter <- readIORef var
+          diff counter (==) 0
+          replicateM_ i $ do
+            j <- forAll $ Gen.int $ Range.linear 0 100
+            replicateM_ i $ do
+              j <- forAll $ Gen.int $ Range.linear 0 100
+              counter <- readIORef var
+              diff counter (==) 0
+   in do
+        var <- newIORef @IO (0 :: Int)
+        check $ prop var
+        finalCount <- readIORef var
+        print finalCount
 
 -- testHowPropsWork2 =
 --   Server.withTemporaryConnection @IO $ \conn ->
@@ -102,22 +109,33 @@ testWithLock = do
   Server.withPool $ \pool ->
     check $ prop_nextPost undefined lock pool
 
+onFailure :: (Monad m) => PropertyT m () -> m () -> PropertyT m ()
+onFailure prop failAction =
+  Property.PropertyT . Property.TestT $
+    Error.catchError
+      (Property.unTest . Property.unPropertyT $ prop)
+      (const $ lift $ lift $ lift failAction)
+
 prop_nextPost :: IORef _ -> MVar () -> Pool.Pool Connection -> Property
 prop_nextPost logVar lock pool =
   -- prop_nextPost :: Connection -> Property
   -- prop_nextPost conn =
-  withShrinks 0
+  -- withShrinks 0
+  --   $ property
+  withTests 3000
+    $ withShrinks 0
     $ property
     $
     --Server.withinUncommittedTransaction conn $
     Pool.withResource pool
     $ \conn ->
+      -- flip onFailure (liftIO $ Pg.rollback conn) $
       do
-        takeMVar lock
+        -- takeMVar lock
         liftIO $ Pg.begin conn
+        users <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> genUser (SqlSerial i)
         prevUsers <- liftIO $ runBeamPostgres conn $ runSelectReturningList $ select $ all_ $ _dbUserAcc db
         assert $ null prevUsers
-        users <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> genUser (SqlSerial i)
         posts <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> do
           author <- Gen.element users
           return $ Post (SqlSerial i) (primaryKey author) placeholder placeholder
@@ -141,6 +159,7 @@ prop_nextPost logVar lock pool =
         -- request a post, check conditions, swipe on it, repeat
         numSwipes <- forAll $ Gen.int $ Range.linear 0 $ length posts `div` 10
         replicateM_ numSwipes $ do
+          -- takeMVar lock
           user <- forAll $ Gen.element users
           maybePost <- liftIO $ runBeamPostgres conn $ nextPost $ primaryKey user
           case maybePost of
@@ -186,5 +205,22 @@ prop_nextPost logVar lock pool =
               ($> ()) . liftIO . runBeamPostgres conn
                 $ swipe (primaryKey user)
                 $ SwipeDecision (primaryKey post) choice
+        -- putMVar lock ()
         liftIO $ Pg.rollback conn
-        putMVar lock ()
+-- putMVar lock ()
+
+-- prop :: Pool.Pool Connection -> Property
+-- prop pool =
+--   property
+--     $ Pool.withResource pool
+--     $ \conn -> do
+--       liftIO $ Pg.begin conn
+--       -- db setup
+--       users <- forAll $ Gen.list (Range.linear 10 100) genUser
+--       liftIO $ runBeamPostgres conn $ runInsert $ insert (_dbUserAcc db) $ insertValues users
+
+--       user <- forAll $ Gen.element users
+--       maybePost <- liftIO $ runBeamPostgres conn $ nextPost $ primaryKey user -- API call
+--       maybePost /== Nothing
+
+--       liftIO $ Pg.rollback conn
