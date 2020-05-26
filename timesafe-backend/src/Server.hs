@@ -109,7 +109,6 @@ withPool withPool =
       withDb db = do
         pool <-
           Pool.createPool
-            -- TODO: is there a way to catch these errors?
             ( do
                 conn <- Pg.connectPostgreSQL $ PgTemp.toConnectionString db
                 createSchema conn
@@ -120,6 +119,20 @@ withPool withPool =
             60
             10
         withPool pool
+   in withTempDb withDb
+
+withConnection ::
+  forall m a.
+  ( MonadBaseControl IO m,
+    MonadIO m
+  ) =>
+  (Connection -> m a) ->
+  m (Either PgTemp.StartError a)
+withConnection withConn =
+  let withDb db = do
+        conn <- liftIO $ Pg.connectPostgreSQL $ PgTemp.toConnectionString db
+        createSchema conn
+        withConn conn
    in withTempDb withDb
 
 withinUncommittedTransaction ::
