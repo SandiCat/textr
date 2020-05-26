@@ -139,35 +139,20 @@ prop_nextPost logVar lock pool =
         posts <- forAll $ genIndexedList (Range.linear 10 1000) $ \i -> do
           author <- Gen.element users
           return $ Post (SqlSerial i) (primaryKey author) placeholder placeholder
-        -- Except.handle @_ @SqlError
-        --   ( \e -> do
-        --       putStrLn "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-        --       print e
-        --       print users
-        --       let loop x = loop x
-        --       -- loop undefined
-        --       return undefined
-        --   )
-        identity
-          ( do
-              -- prevUs <- liftIO $ runBeamPostgres conn $ runSelectReturningList $ select $ all_ $ _dbUserAcc db
-              -- prevPosts <- liftIO $ runBeamPostgres conn $ runSelectReturningList $ select $ all_ $ _dbPost db
-              -- atomicModifyIORef' logVar (\log -> ((prevUs, prevPosts, users, posts) : log, ()))
-              liftIO $ runBeamPostgres conn $ runInsert $ insert (_dbUserAcc db) $ insertValues users
-              liftIO $ runBeamPostgres conn $ runInsert $ insert (_dbPost db) $ insertValues posts
-          )
+          evalIO $ runBeamPostgres conn $ runInsert $ insert (_dbUserAcc db) $ insertValues users
+          evalIO $ runBeamPostgres conn $ runInsert $ insert (_dbPost db) $ insertValues posts
         -- request a post, check conditions, swipe on it, repeat
         numSwipes <- forAll $ Gen.int $ Range.linear 0 $ length posts `div` 10
         replicateM_ numSwipes $ do
           -- takeMVar lock
           user <- forAll $ Gen.element users
-          maybePost <- liftIO $ runBeamPostgres conn $ nextPost $ primaryKey user
+            maybePost <- evalIO $ runBeamPostgres conn $ nextPost $ primaryKey user
           case maybePost of
             Nothing -> do
               label "got nothing"
               for_ posts $ \post -> do
                 swipesByMe <-
-                  liftIO $ runBeamPostgres conn
+                    evalIO $ runBeamPostgres conn
                     $ runSelectReturningList
                     $ select
                     $ filter_
@@ -185,7 +170,7 @@ prop_nextPost logVar lock pool =
             Just displayPost -> do
               label "got a post"
               -- find the author and the post of the DisplayPost
-              Just (post, author) <- liftIO $ runBeamPostgres conn $ runSelectReturningOne $ select $ do
+                Just (post, author) <- evalIO $ runBeamPostgres conn $ runSelectReturningOne $ select $ do
                 post <- all_ $ _dbPost db
                 guard_ $ val_ (_dpPostId displayPost) `references_` post
                 user <- all_ $ _dbUserAcc db
@@ -194,7 +179,7 @@ prop_nextPost logVar lock pool =
               -- don't recommend my own posts
               primaryKey author /== primaryKey user
               -- don't recommend posts i've swiped on already
-              timesSwiped :: Int <- liftIO $ runBeamPostgres conn $ fmap length $ runSelectReturningList $ select $ do
+                timesSwiped :: Int <- evalIO $ runBeamPostgres conn $ fmap length $ runSelectReturningList $ select $ do
                 swipe <- all_ $ _dbSwipe db
                 guard_ $ _swipeWhoSwiped swipe `references_` val_ user
                 guard_ $ _swipePost swipe `references_` val_ post
@@ -202,7 +187,7 @@ prop_nextPost logVar lock pool =
               timesSwiped === 0
               -- swipe on the post gotten
               choice <- forAll $ Gen.enumBounded @_ @Choice
-              ($> ()) . liftIO . runBeamPostgres conn
+                ($> ()) . evalIO . runBeamPostgres conn
                 $ swipe (primaryKey user)
                 $ SwipeDecision (primaryKey post) choice
         -- putMVar lock ()
