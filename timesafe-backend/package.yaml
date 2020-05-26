@@ -48,6 +48,9 @@ dependencies:
 - monad-control
 - postgres-options
 - resource-pool
+- resourcet
+- unliftio
+- mmorph
 
 ghc-options:
 - -Wall
